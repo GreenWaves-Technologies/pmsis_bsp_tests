@@ -24,6 +24,9 @@
 
 static inline void get_info(unsigned int *program_size)
 {
+#ifdef __ZEPHYR__
+  *program_size = PROGRAM_SIZE_OTHER;
+#else
   if (rt_platform() == ARCHI_PLATFORM_RTL)
   {
     *program_size = PROGRAM_SIZE_RTL;
@@ -32,13 +35,14 @@ static inline void get_info(unsigned int *program_size)
   {
     *program_size = PROGRAM_SIZE_OTHER;
   }
+#endif
 }
 
 
 static L2_DATA unsigned char rx_buffer[BUFF_SIZE];
 static L2_DATA unsigned char tx_buffer[BUFF_SIZE];
 
-int main()
+static int test_entry()
 {
   struct pi_device flash;
   struct hyperflash_conf flash_conf;
@@ -107,4 +111,15 @@ int main()
   printf("TEST SUCCESS\n");
 
   return 0;
+}
+
+static void test_kickoff(void *arg)
+{
+  int ret = test_entry();
+  pmsis_exit(ret);
+}
+
+int main()
+{
+  return pmsis_kickoff((void *)test_kickoff);
 }

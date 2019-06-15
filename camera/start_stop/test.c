@@ -9,6 +9,7 @@
  */
 
 #include "bsp/bsp.h"
+#include "stdio.h"
 
 #if defined(CONFIG_HIMAX)
 #define WIDTH    324
@@ -20,17 +21,21 @@
 
 static inline int get_nb_buffers()
 {
+#ifdef __ZEPHYR__
+  return 4;
+#else
   if (rt_platform() == ARCHI_PLATFORM_RTL)
     return 4;
   else
     return 4;
+#endif
 }
 
 #define BUFF_SIZE (WIDTH*HEIGHT)
 
-RT_L2_DATA unsigned char *buff[16];
+L2_DATA unsigned char *buff[16];
 
-int main()
+static int test_entry()
 {
   printf("Entering main controller\n");
 
@@ -68,12 +73,12 @@ int main()
     camera_capture_async(&device, buff[i], WIDTH*HEIGHT, pi_task(&task));
     camera_control(&device, CAMERA_CMD_START, 0);
 
-    pi_wait_on_task(&task);
+    pi_task_wait_on(&task);
     camera_control(&device, CAMERA_CMD_STOP, 0);
     
 
     // Now wait some time to start capturing in the middle of the next frame
-    rt_time_wait_us((i + 1) * 5000);
+    pi_time_wait_us((i + 1) * 5000);
   }
 
 
@@ -100,4 +105,15 @@ int main()
 error:
   printf("Test failure\n");
   return -1;
+}
+
+static void test_kickoff(void *arg)
+{
+  int ret = test_entry();
+  pmsis_exit(ret);
+}
+
+int main()
+{
+  return pmsis_kickoff((void *)test_kickoff);
 }

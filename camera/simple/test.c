@@ -66,7 +66,7 @@ static int test_entry()
 
   camera_control(&camera, CAMERA_CMD_START, 0);
 
-  pi_wait_on_task(&task);
+  pi_task_wait_on(&task);
 
   camera_control(&camera, CAMERA_CMD_STOP, 0);
 
