@@ -1,6 +1,6 @@
 APP = test
-SRCS += test.c
-CFLAGS += -O3 -g
+APP_SRCS += test.c
+APP_CFLAGS += -O3 -g
 USE_PMSIS_BSP=1
 
 RUNNER_CONFIG = $(CURDIR)/config.ini

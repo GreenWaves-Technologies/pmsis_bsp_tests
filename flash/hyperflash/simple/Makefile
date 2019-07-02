@@ -4,8 +4,8 @@ include $(PULP_SDK_HOME)/install/rules/pulp_properties.mk
 FLASH_TYPE ?= HYPER_FLASH
 
 APP = test
-SRCS += test.c
-CFLAGS += -O3 -g -DFLASH_TYPE=$(FLASH_TYPE) -Werror
+APP_SRCS += test.c
+APP_CFLAGS += -O3 -g -DFLASH_TYPE=$(FLASH_TYPE) -Werror
 USE_PMSIS_BSP=1
 
 ifeq '$(pulp_chip_family)' 'gap'
