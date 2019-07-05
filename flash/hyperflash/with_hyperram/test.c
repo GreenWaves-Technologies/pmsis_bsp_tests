@@ -58,7 +58,7 @@ static int test_entry()
   struct pi_device flash;
   struct hyperflash_conf flash_conf;
   struct flash_info flash_info;
-  struct pi_hyper_conf ram_conf;
+  struct hyperram_conf ram_conf;
   pi_task_t ram_task;
 
   printf("Entering main controller\n");
@@ -85,19 +85,15 @@ static int test_entry()
 
 
 
-  pi_hyper_conf_init(&ram_conf);
-
-  ram_conf.id = 0;
-  ram_conf.ram_size = 1<<20;
-  ram_conf.type = PI_HYPER_TYPE_RAM;
+  hyperram_conf_init(&ram_conf);
 
   pi_open_from_conf(&hyperram, &ram_conf);
 
-  if (pi_hyper_open(&hyperram))
+  if (ram_open(&hyperram))
     return -1;
 
-  hyper_buff = pi_hyperram_alloc(&hyperram, BUFF_SIZE);
-  if (hyper_buff == 0) return -1;
+  if (ram_alloc(&hyperram, BUFF_SIZE, &hyper_buff))
+    return -1;
 
 
 
@@ -106,8 +102,8 @@ static int test_entry()
   {
     if (j == NB_ITER - 1)
     {
-      pi_hyperram_free(&hyperram, hyper_buff, BUFF_SIZE);
-      pi_hyper_close(&hyperram);
+      ram_free(&hyperram, hyper_buff, BUFF_SIZE);
+      ram_close(&hyperram);
     }
 
     // The beginning of the flash may contain runtime data such as the boot binary.
@@ -134,7 +130,7 @@ static int test_entry()
       if (j != NB_ITER - 1)
       {
         // Do hyperram read and write to see if this disturbs flash read
-        pi_hyper_write_async(&hyperram, hyper_buff, ram_buffer, BUFF_SIZE, pi_task_callback(&ram_task, end_of_tx, (void *)&hyperram));
+        ram_write_async(&hyperram, hyper_buff, ram_buffer, BUFF_SIZE, pi_task_callback(&ram_task, end_of_tx, (void *)&hyperram));
       }
 
 
