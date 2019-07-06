@@ -42,11 +42,77 @@ static void handle_async_error(void *arg, event_t *event, int error, void *objec
 }
 
 #endif
+
+
+
+static int exec_tests()
+{
+  int errors = 0;
+
+#ifdef USE_CLUSTER
+  cl_fs_req_t req0, req1;
+
+  cl_fs_read(file[0], buff[0], BUFF_SIZE, &req0);
+  cl_fs_read(file[1], buff[1], BUFF_SIZE, &req1);
+
+  errors += cl_fs_wait(&req0) != BUFF_SIZE;
+  errors += cl_fs_wait(&req1) != BUFF_SIZE;;
+
+#else
+  pi_task_t task0, task1;
+
+  fs_read_async(file[0], buff[0], BUFF_SIZE, pi_task_callback(&task0, end_of_rx, (void *)0));
+  fs_read_async(file[1], buff[1], BUFF_SIZE, pi_task_callback(&task1, end_of_rx, (void *)1));
+
+  while(count_done != COUNT) {
+    pi_yield();
+  }
+
+#endif
+
+  return errors;
+}
+
+
+
+static void cluster_entry(void *arg)
+{
+  int *errors = (int *)arg;
+
+  *errors = exec_tests();
+
+}
+
+#ifdef USE_CLUSTER
+static int exec_tests_on_cluster()
+{
+  printf("Exec test on cluster\n");
+  
+  int errors = 0;
+
+  struct pi_device cluster_dev;
+  struct cluster_driver_conf conf;
+  struct pi_cluster_task cluster_task;
+
+  conf.id = 0;
+
+  pi_open_from_conf(&cluster_dev, &conf);
+  pi_cluster_open(&cluster_dev);
+
+  pi_cluster_task(&cluster_task, cluster_entry, (void *)&errors);
+  pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
+
+  return errors;
+}
+#endif
+
+
+
 int main()
 {
+
   struct pi_device fs;
   struct pi_device flash;
-  pi_task_t task0, task1;
 
   printf("Entering main controller\n");
 
@@ -57,8 +123,6 @@ int main()
   struct hyperflash_conf flash_conf;
 
   hyperflash_conf_init(&flash_conf);
-
-  flash_conf.type = FLASH_TYPE_HYPER;
 
   pi_open_from_conf(&flash, &flash_conf);
 
@@ -79,12 +143,13 @@ int main()
   file[1] = fs_open(&fs, "flash_file_1.bin", 0);
   if (file[1] == NULL) return -1;
 
-  fs_read_async(file[0], buff[0], BUFF_SIZE, pi_task_callback(&task0, end_of_rx, (void *)0));
-  fs_read_async(file[1], buff[1], BUFF_SIZE, pi_task_callback(&task1, end_of_rx, (void *)1));
-
-  while(count_done != COUNT) {
-    pi_yield();
-  }
+#ifdef USE_CLUSTER
+  if (exec_tests_on_cluster())
+    return -1;
+#else
+  if (exec_tests())
+    return -1;
+#endif
 
   for (int j=0; j<2; j++)
   {
@@ -104,6 +169,8 @@ int main()
   }
 
   fs_unmount(&fs);
+
+  printf("Test success\n");
 
   return 0;
 }

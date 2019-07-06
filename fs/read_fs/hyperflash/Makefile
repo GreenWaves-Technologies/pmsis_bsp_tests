@@ -17,4 +17,9 @@ APP = test
 APP_SRCS = test.c
 APP_CFLAGS += -O3 -g
 
+ifdef USE_CLUSTER
+APP_CFLAGS += -DUSE_CLUSTER
+endif
+
+
 include $(RULES_DIR)/pmsis_rules.mk
