@@ -9,7 +9,7 @@ endif
 USE_PMSIS_BSP=1
 
 
-override CONFIG_OPT += flash/fs/files=$(CURDIR)/flash_file_0.bin flash/fs/files=$(CURDIR)/flash_file_1.bin
+override runner_args += --config-opt=flash/fs/files=$(CURDIR)/flash_file_0.bin --config-opt=flash/fs/files=$(CURDIR)/flash_file_1.bin
 
 
 

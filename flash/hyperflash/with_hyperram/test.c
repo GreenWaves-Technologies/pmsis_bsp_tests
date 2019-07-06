@@ -66,16 +66,6 @@ static int test_entry()
 
   hyperflash_conf_init(&flash_conf);
 
-#if FLASH_TYPE == HYPER_FLASH
-  flash_conf.type = FLASH_TYPE_HYPER;
-#elif FLASH_TYPE == SPI_FLASH
-  flash_conf.type = FLASH_TYPE_SPI;
-#elif FLASH_TYPE == MRAM
-  flash_conf.type = FLASH_TYPE_MRAM;
-#else
-  #error Unknown flash
-#endif
-
   pi_open_from_conf(&flash, &flash_conf);
 
   if (flash_open(&flash))
@@ -92,7 +82,7 @@ static int test_entry()
   if (ram_open(&hyperram))
     return -1;
 
-  if (ram_alloc(&hyperram, BUFF_SIZE, &hyper_buff))
+  if (ram_alloc(&hyperram, &hyper_buff, BUFF_SIZE))
     return -1;
 
 

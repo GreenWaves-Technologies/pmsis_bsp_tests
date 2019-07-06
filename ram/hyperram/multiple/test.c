@@ -30,7 +30,7 @@
 #endif
 
 
-#define BUFF_SIZE 4
+#define BUFF_SIZE 1024
 #define NB_ASYNC_TRANSFERS 4
 
 static struct pi_task fc_tasks[NB_ASYNC_TRANSFERS];
