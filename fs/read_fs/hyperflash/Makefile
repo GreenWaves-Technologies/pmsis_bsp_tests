@@ -8,8 +8,15 @@ endif
 
 USE_PMSIS_BSP=1
 
+ifdef GAP_SDK_HOME
+
+PLPBRIDGE_FLAGS += -f flash_file_0.bin flash_file_1.bin -jtag
+
+else
 
 override runner_args += --config-opt=flash/fs/files=$(CURDIR)/flash_file_0.bin --config-opt=flash/fs/files=$(CURDIR)/flash_file_1.bin
+
+endif
 
 
 
