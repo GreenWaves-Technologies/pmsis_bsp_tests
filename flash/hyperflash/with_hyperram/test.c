@@ -9,6 +9,8 @@
  */
 
 #include <bsp/bsp.h>
+#include <bsp/flash/hyperflash.h>
+#include <bsp/ram/hyperram.h>
 #include "stdio.h"
 
 #define HYPER_FLASH 0

@@ -9,6 +9,7 @@
  */
 
 #include <bsp/bsp.h>
+#include <bsp/ram/hyperram.h>
 #include "stdio.h"
 
 #if !defined(TEST_QUICK) && !defined(TEST_BASIC) && !defined(TEST_ROBUST)

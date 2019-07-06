@@ -8,8 +8,11 @@
  * Authors: Germain Haugou, ETH (germain.haugou@iis.ee.ethz.ch)
  */
 
-#include "bsp/bsp.h"
 #include "stdio.h"
+#include "bsp/bsp.h"
+#include "bsp/camera.h"
+#include "bsp/camera/himax.h"
+
 
 #if defined(CONFIG_HIMAX)
 #define WIDTH    324
@@ -41,14 +44,14 @@ static int test_entry()
 
   struct pi_device device;
 
-#if defined(CONFIG_HIMAX)
-  printf("Opening Himax camera\n");
-  struct himax_conf cam_conf;
-  himax_conf_init(&cam_conf);
-#elif defined(CONFIG_MT9V034)
+#if defined(CONFIG_MT9V034)
   printf("Opening mt9v034 camera\n");
   struct mt9v034_conf cam_conf;
   mt9v034_conf_init(&cam_conf);
+#else
+  printf("Opening Himax camera\n");
+  struct himax_conf cam_conf;
+  himax_conf_init(&cam_conf);
 #endif
 
   cam_conf.format = CAMERA_QVGA;
