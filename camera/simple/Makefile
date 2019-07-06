@@ -9,4 +9,4 @@ override runner_args += --config-opt=camera/image-stream=$(CURDIR)/imgTest0.pgm
 override runner_args += --config-opt=runner/peripherals=true
 
 
-include $(PULP_SDK_HOME)/install/rules/pmsis.mk
+include $(RULES_DIR)/pmsis_rules.mk

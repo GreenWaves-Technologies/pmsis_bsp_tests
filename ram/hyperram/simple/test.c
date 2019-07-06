@@ -54,10 +54,10 @@ int test_entry()
   if (ram_open(&hyper))
     return -1;
 
-  if (ram_alloc(&hyper, BUFF_SIZE, &hyper_buff[0]))
+  if (ram_alloc(&hyper, &hyper_buff[0], BUFF_SIZE))
     return -1;
 
-  if (ram_alloc(&hyper, BUFF_SIZE, &hyper_buff[1]))
+  if (ram_alloc(&hyper, &hyper_buff[1], BUFF_SIZE))
     return -1;
 
   for (int i=0; i<BUFF_SIZE; i++)
