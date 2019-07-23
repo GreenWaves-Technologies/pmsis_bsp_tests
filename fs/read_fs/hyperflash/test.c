@@ -97,9 +97,11 @@ static int exec_tests_on_cluster()
   conf.id = 0;
 
   pi_open_from_conf(&cluster_dev, &conf);
+
   pi_cluster_open(&cluster_dev);
 
   pi_cluster_task(&cluster_task, cluster_entry, (void *)&errors);
+
   pi_cluster_send_task_to_cl(&cluster_dev, &cluster_task);
 
   return errors;
@@ -108,7 +110,7 @@ static int exec_tests_on_cluster()
 
 
 
-int main()
+static int test_entry()
 {
 
   struct pi_device fs;
@@ -173,4 +175,15 @@ int main()
   printf("Test success\n");
 
   return 0;
+}
+
+static void test_kickoff(void *arg)
+{
+  int ret = test_entry();
+  pmsis_exit(ret);
+}
+
+int main()
+{
+  return pmsis_kickoff((void *)test_kickoff);
 }
