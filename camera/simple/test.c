@@ -8,8 +8,6 @@
  * Authors: Germain Haugou, ETH (germain.haugou@iis.ee.ethz.ch)
  */
 
-#define CONFIG_HIMAX 1
-
 #include "pmsis.h"
 #include "bsp/bsp.h"
 #include "bsp/camera.h"
