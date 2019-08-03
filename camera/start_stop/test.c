@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2019 GreenWaves Technologies
  * All rights reserved.
  *
@@ -12,6 +12,13 @@
 #include "bsp/bsp.h"
 #include "bsp/camera.h"
 #include "bsp/camera/himax.h"
+#ifdef __FREERTOS__
+#include "rtos/pmsis_os.h"
+#include "rtos/os_frontend_api/pmsis_task.h"
+#include "rtos/os_frontend_api/pmsis_time.h"
+#include "rtos/pmsis_driver_core_api/pmsis_driver_core_api.h"
+#include "rtos/malloc/pmsis_l2_malloc.h"
+#endif
 
 
 #if defined(CONFIG_HIMAX)
@@ -24,19 +31,17 @@
 
 static inline int get_nb_buffers()
 {
-#ifdef __ZEPHYR__
-  return 4;
-#else
+#ifdef __PULP_OS__
   if (rt_platform() == ARCHI_PLATFORM_RTL)
     return 4;
   else
-    return 4;
 #endif
+    return 4;
 }
 
 #define BUFF_SIZE (WIDTH*HEIGHT)
 
-L2_DATA unsigned char *buff[16];
+PI_L2 unsigned char *buff[16];
 
 static int test_entry()
 {
@@ -63,7 +68,8 @@ static int test_entry()
   for (int i=0; i<get_nb_buffers(); i++)
   {
     buff[i] = pmsis_l2_malloc(WIDTH*HEIGHT);
-    if (buff[i] == NULL) {
+    if (buff[i] == NULL)
+    {
       printf("Unable to allocate buffer\n");
       goto error;
     }
@@ -72,17 +78,30 @@ static int test_entry()
   for (int i=0; i<get_nb_buffers(); i++)
   {
     pi_task_t task;
-
+    #if 0
     camera_capture_async(&device, buff[i], WIDTH*HEIGHT, pi_task(&task));
     camera_control(&device, CAMERA_CMD_START, 0);
 
     pi_task_wait_on(&task);
     camera_control(&device, CAMERA_CMD_STOP, 0);
-    
 
     // Now wait some time to start capturing in the middle of the next frame
     pi_time_wait_us((i + 1) * 5000);
+    #else
+    #if defined(ASYNC)
+    camera_control(&device, CAMERA_CMD_STOP, 0);
+    camera_capture_async(&device, buff[i], WIDTH*HEIGHT, pi_task(&task));
+    camera_control(&device, CAMERA_CMD_START, 0);
+    pi_task_wait_on(&task);
+    #else
+    camera_control(&device, CAMERA_CMD_START, 0);
+    camera_capture(&device, buff[i], WIDTH*HEIGHT);
+    camera_control(&device, CAMERA_CMD_STOP, 0);
+    //for (volatile int i=0; i<44700; i++);
+    #endif
+    #endif
   }
+  camera_close(&device);
 
 
   for (int j=0; j<get_nb_buffers(); j++)
@@ -99,10 +118,7 @@ static int test_entry()
     }
   }
 
-  camera_close(&device);
   printf("Test success\n");
-
-
   return 0;
 
 error:
@@ -118,5 +134,12 @@ static void test_kickoff(void *arg)
 
 int main()
 {
+    #if defined(GAPUINO)
+    printf("\n\t*** PMSIS ili9341 with himax test on gapuino ***\n\n");
+    #else
+    #if defined(GAPOC_A)
+    printf("\n\t*** PMSIS ili9341 with mt9v034 test on gapoc_a ***\n\n");
+    #endif
+    #endif
   return pmsis_kickoff((void *)test_kickoff);
 }
