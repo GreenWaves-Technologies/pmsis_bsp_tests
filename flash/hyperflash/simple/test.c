@@ -67,7 +67,7 @@ static int test_entry()
     // Also add small offset to better test erase (sector size aligned) and program (512 byte aligned).
     uint32_t flash_addr = ((flash_info.flash_start + flash_info.sector_size - 1) & ~(flash_info.sector_size - 1)) + 128;
 
-    unsigned int size;
+    int size;
     get_info(&size);
 
     flash_erase(&flash, flash_addr, size);
