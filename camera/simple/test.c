@@ -65,7 +65,7 @@ static int test_entry()
   buff[1] = pmsis_l2_malloc(WIDTH*HEIGHT);
   if (buff[1] == NULL) goto error;
 
-  camera_capture_async(&camera, buff[0], WIDTH*HEIGHT, pi_task(&task));
+  camera_capture_async(&camera, buff[0], WIDTH*HEIGHT, pi_task_block(&task));
 
   camera_control(&camera, CAMERA_CMD_START, 0);
 

@@ -73,7 +73,7 @@ static int test_entry()
   {
     pi_task_t task;
 
-    camera_capture_async(&device, buff[i], WIDTH*HEIGHT, pi_task(&task));
+    camera_capture_async(&device, buff[i], WIDTH*HEIGHT, pi_task_block(&task));
     camera_control(&device, CAMERA_CMD_START, 0);
 
     pi_task_wait_on(&task);
