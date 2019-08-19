@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2019 GreenWaves Technologies
  * All rights reserved.
  *
@@ -9,9 +9,17 @@
  */
 
 #include "pmsis.h"
+#include "pmsis/device.h"
+#include "pmsis/rtos/pmsis_os.h"
+#include "pmsis/rtos/malloc/pmsis_l2_malloc.h"
+#include "pmsis/rtos/os_frontend_api/pmsis_task.h"
 #include "bsp/bsp.h"
 #include "bsp/camera.h"
+#if defined(CONFIG_GAPUINO)
 #include "bsp/camera/himax.h"
+#elif defined(CONFIG_GAPOC_A)
+#include "bsp/camera/mt9v034.h"
+#endif
 
 #if defined(CONFIG_HIMAX)
 #define WIDTH    324
@@ -23,7 +31,7 @@
 
 #define BUFF_SIZE (WIDTH*HEIGHT)
 
-L2_DATA unsigned char *buff[2];
+PI_L2 unsigned char *buff[2];
 
 static int open_camera(struct pi_device *device)
 {
@@ -42,7 +50,7 @@ static int open_camera(struct pi_device *device)
   pi_open_from_conf(device, &cam_conf);
   if (camera_open(device))
     return -1;
-  
+
   return 0;
 }
 

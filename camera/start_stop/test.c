@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2019 GreenWaves Technologies
  * All rights reserved.
  *
@@ -9,10 +9,19 @@
  */
 
 #include "stdio.h"
+#include "pmsis.h"
+#include "pmsis/device.h"
+#include "pmsis/rtos/pmsis_os.h"
+#include "pmsis/rtos/malloc/pmsis_l2_malloc.h"
+#include "pmsis/rtos/os_frontend_api/pmsis_task.h"
+#include "pmsis/rtos/os_frontend_api/pmsis_time.h"
 #include "bsp/bsp.h"
 #include "bsp/camera.h"
+#if defined(CONFIG_GAPUINO)
 #include "bsp/camera/himax.h"
-
+#elif defined(CONFIG_GAPOC_A)
+#include "bsp/camera/mt9v034.h"
+#endif
 
 #if defined(CONFIG_HIMAX)
 #define WIDTH    324
@@ -24,19 +33,19 @@
 
 static inline int get_nb_buffers()
 {
-#ifdef __ZEPHYR__
-  return 4;
-#else
+#ifdef __PULP_OS__
   if (rt_platform() == ARCHI_PLATFORM_RTL)
     return 4;
   else
     return 4;
+#else
+  return 4;
 #endif
 }
 
 #define BUFF_SIZE (WIDTH*HEIGHT)
 
-L2_DATA unsigned char *buff[16];
+PI_L2 unsigned char *buff[16];
 
 static int test_entry()
 {
@@ -78,7 +87,6 @@ static int test_entry()
 
     pi_task_wait_on(&task);
     camera_control(&device, CAMERA_CMD_STOP, 0);
-    
 
     // Now wait some time to start capturing in the middle of the next frame
     pi_time_wait_us((i + 1) * 5000);
