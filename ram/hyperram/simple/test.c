@@ -6,10 +6,10 @@
  * of the BSD license.  See the LICENSE file for details.
  *
  */
+#include "pmsis.h"
+#include "stdio.h"
 #include <bsp/bsp.h>
 #include <bsp/ram/hyperram.h>
-#include "stdio.h"
-#include "stdint.h"
 
 #define BUFF_SIZE 2048
 

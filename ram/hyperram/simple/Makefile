@@ -8,7 +8,7 @@ endif
 
 APP = test
 APP_SRCS = test.c
-APP_CFLAGS += -O3 -g
+APP_CFLAGS += -Os -g
 USE_PMSIS_BSP=1
 
 

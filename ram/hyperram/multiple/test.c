@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2017 ETH Zurich, University of Bologna and GreenWaves Technologies
  * All rights reserved.
  *
@@ -8,9 +8,10 @@
  * Authors: Germain Haugou, ETH (germain.haugou@iis.ee.ethz.ch)
  */
 
+#include "pmsis.h"
+#include "stdio.h"
 #include <bsp/bsp.h>
 #include <bsp/ram/hyperram.h>
-#include "stdio.h"
 
 #if !defined(TEST_QUICK) && !defined(TEST_BASIC) && !defined(TEST_ROBUST)
 #define TEST_QUICK 1
@@ -36,7 +37,7 @@
 
 static struct pi_task fc_tasks[NB_ASYNC_TRANSFERS];
 #ifdef USE_CLUSTER
-L1_DATA static cl_ram_req_t cl_tasks[NB_ASYNC_TRANSFERS];
+PI_L1 static cl_ram_req_t cl_tasks[NB_ASYNC_TRANSFERS];
 #endif
 static unsigned char buff[2][BUFF_SIZE*2];
 static uint32_t hyper_buff[2];
@@ -266,12 +267,20 @@ static int check_common_transfer(int loc2ext, int size, int l2_offset, int hyper
 #ifdef USE_CLUSTER
       for (int i=0; i<nb_transfers; i++)
       {
+        #if defined(PMSIS_DRIVERS)
+        hal_compiler_barrier();
+        #else
         rt_compiler_barrier();
+        #endif  /* PMSIS_DRIVERS */
         if (!loc2ext)
           cl_ram_read_wait(&cl_tasks[i]);
         else
           cl_ram_write_wait(&cl_tasks[i]);
+        #if defined(PMSIS_DRIVERS)
+        hal_compiler_barrier();
+        #else
         rt_compiler_barrier();
+        #endif  /* PMSIS_DRIVERS */
       }
 #endif
     }
@@ -564,37 +573,53 @@ static int exec_tests_on_cluster()
 
 int test_entry()
 {
-  printf("Entering main controller\n");
+    printf("Entering main controller\n");
 
-  struct hyperram_conf conf;
-  hyperram_conf_init(&conf);
+    struct hyperram_conf conf;
+    hyperram_conf_init(&conf);
 
-  pi_open_from_conf(&hyper, &conf);
+    pi_open_from_conf(&hyper, &conf);
 
-  if (ram_open(&hyper))
-    return -1;
+    int32_t error = ram_open(&hyper);
+    if (error)
+    {
+        return -1;
+    }
 
-   if (ram_alloc(&hyper, &hyper_buff[0], BUFF_SIZE*2))
-    return -1;
-  if (hyper_buff[0] == 0) return -1;
+    if (ram_alloc(&hyper, &hyper_buff[0], BUFF_SIZE*2))
+    {
+        return -2;
+    }
 
-  if (ram_alloc(&hyper, &hyper_buff[1], BUFF_SIZE*2))
-    return -1;
+    if (hyper_buff[0] == 0)
+    {
+        return -3;
+    }
+
+    if (ram_alloc(&hyper, &hyper_buff[1], BUFF_SIZE*2))
+    {
+        return -4;
+    }
+
+    if (hyper_buff[1] == 0)
+    {
+        return -5;
+    }
 
 #ifdef USE_CLUSTER
-  return exec_tests_on_cluster();
+    return exec_tests_on_cluster();
 #else
-  return exec_tests();
+    return exec_tests();
 #endif
 }
 
 void test_kickoff(void *arg)
 {
-  int ret = test_entry();
-  pmsis_exit(ret);
+    int ret = test_entry();
+    pmsis_exit(ret);
 }
 
 int main()
 {
-  return pmsis_kickoff((void *)test_kickoff);
+    return pmsis_kickoff((void *)test_kickoff);
 }
