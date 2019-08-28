@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2019 GreenWaves Technologies
  * All rights reserved.
  *
@@ -8,9 +8,10 @@
  * Authors: Germain Haugou, GreenWaves Technologies (germain.haugou@greenwaves-technologies.com)
  */
 
+#include "pmsis.h"
+#include "stdio.h"
 #include <bsp/bsp.h>
 #include <bsp/flash/hyperflash.h>
-#include "stdio.h"
 
 #define HYPER_FLASH 0
 #define SPI_FLASH   1
@@ -25,9 +26,7 @@
 
 static inline void get_info(unsigned int *program_size)
 {
-#ifdef __ZEPHYR__
-  *program_size = PROGRAM_SIZE_OTHER;
-#else
+#ifdef __PULP_OS__
   if (rt_platform() == ARCHI_PLATFORM_RTL)
   {
     *program_size = PROGRAM_SIZE_RTL;
@@ -36,12 +35,14 @@ static inline void get_info(unsigned int *program_size)
   {
     *program_size = PROGRAM_SIZE_OTHER;
   }
-#endif
+#else
+  *program_size = PROGRAM_SIZE_OTHER;
+#endif  /* __PULP_OS__ */
 }
 
 
-static L2_DATA unsigned char rx_buffer[BUFF_SIZE];
-static L2_DATA unsigned char tx_buffer[BUFF_SIZE];
+static PI_L2 unsigned char rx_buffer[BUFF_SIZE];
+static PI_L2 unsigned char tx_buffer[BUFF_SIZE];
 
 static int test_entry()
 {
@@ -89,7 +90,7 @@ static int test_entry()
           {
             printf("Error at index %d, expected 0x%2.2x, got 0x%2.2x\n", i, (unsigned char)i, rx_buffer[i]);
             printf("TEST FAILURE\n");
-            return -1;
+            return -2;
           }
       }
       size -= BUFF_SIZE;
