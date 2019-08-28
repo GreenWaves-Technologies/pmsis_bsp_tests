@@ -45,7 +45,7 @@ int test_entry()
       return -1;
     rcv_buff[i] = pmsis_l2_malloc(BUFF_SIZE);
     if (rcv_buff[i] == NULL)
-      return -1;
+      return -2;
   }
 
   struct hyperram_conf conf;
@@ -54,13 +54,13 @@ int test_entry()
   pi_open_from_conf(&hyper, &conf);
 
   if (ram_open(&hyper))
-    return -1;
+    return -3;
 
   if (ram_alloc(&hyper, &hyper_buff[0], BUFF_SIZE))
-    return -1;
+    return -4;
 
   if (ram_alloc(&hyper, &hyper_buff[1], BUFF_SIZE))
-    return -1;
+    return -5;
 
   for (int i=0; i<BUFF_SIZE; i++)
     {
@@ -89,7 +89,7 @@ int test_entry()
       if (expected != rcv_buff[j][i])
       {
         printf("Error, buffer: %d, index: %d, expected: 0x%x, read: 0x%x\n", j, i, expected, rcv_buff[j][i]);
-        return -1;
+        return -6;
       }
     }
   }

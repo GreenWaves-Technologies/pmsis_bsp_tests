@@ -26,7 +26,7 @@
 
 static inline void get_info(unsigned int *program_size)
 {
-#ifdef __PULP_OS__
+#if defined(__PULP_OS__)
   if (rt_platform() == ARCHI_PLATFORM_RTL)
   {
     *program_size = PROGRAM_SIZE_RTL;
