@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2017 ETH Zurich, University of Bologna and GreenWaves Technologies
  * All rights reserved.
  *
@@ -16,7 +16,7 @@
 #define BUFF_SIZE 1024
 #define COUNT 2
 
-static char buff[2][BUFF_SIZE];
+static PI_L2 char buff[2][BUFF_SIZE];
 static int count_done = 0;
 static fs_file_t *file[2];
 
@@ -68,6 +68,11 @@ static int exec_tests()
     pi_yield();
   }
 
+  #if defined(PMSIS_DRIVERS)
+  pi_task_destroy(&task0);
+  pi_task_destroy(&task1);
+  #endif  /* PMSIS_DRIVERS */
+
 #endif
 
   return errors;
@@ -87,7 +92,7 @@ static void cluster_entry(void *arg)
 static int exec_tests_on_cluster()
 {
   printf("Exec test on cluster\n");
-  
+
   int errors = 0;
 
   struct pi_device cluster_dev;
@@ -137,20 +142,20 @@ static int test_entry()
   pi_open_from_conf(&fs, &conf);
 
   if (fs_mount(&fs))
-    return -1;
+    return -2;
 
   file[0] = fs_open(&fs, "flash_file_0.bin", 0);
-  if (file[0] == NULL) return -1;
+  if (file[0] == NULL) return -3;
 
   file[1] = fs_open(&fs, "flash_file_1.bin", 0);
-  if (file[1] == NULL) return -1;
+  if (file[1] == NULL) return -4;
 
 #ifdef USE_CLUSTER
   if (exec_tests_on_cluster())
-    return -1;
+    return -5;
 #else
   if (exec_tests())
-    return -1;
+    return -5;
 #endif
 
   for (int j=0; j<2; j++)
@@ -165,7 +170,7 @@ static int test_entry()
       if (expected != buff[j][i])
       {
         printf("Error, buffer: %d, index: %d, expected: 0x%x, read: 0x%x\n", j, i, expected, buff[j][i]);
-        return -1;
+        return -6;
       }
     }
   }
