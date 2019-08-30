@@ -68,11 +68,6 @@ static int exec_tests()
     pi_yield();
   }
 
-  #if defined(PMSIS_DRIVERS)
-  pi_task_destroy(&task0);
-  pi_task_destroy(&task1);
-  #endif  /* PMSIS_DRIVERS */
-
 #endif
 
   return errors;

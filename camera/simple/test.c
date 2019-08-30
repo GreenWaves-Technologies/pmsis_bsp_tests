@@ -15,9 +15,9 @@
 #include "pmsis/rtos/os_frontend_api/pmsis_task.h"
 #include "bsp/bsp.h"
 #include "bsp/camera.h"
-#if defined(CONFIG_GAPUINO)
+#if defined(CONFIG_HIMAX)
 #include "bsp/camera/himax.h"
-#elif defined(CONFIG_GAPOC_A)
+#elif defined(CONFIG_MT9V034)
 #include "bsp/camera/mt9v034.h"
 #endif
 

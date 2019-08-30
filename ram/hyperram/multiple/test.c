@@ -267,6 +267,7 @@ static int check_common_transfer(int loc2ext, int size, int l2_offset, int hyper
 #ifdef USE_CLUSTER
       for (int i=0; i<nb_transfers; i++)
       {
+        // TODO this is a temporary workaround for a compiler bug which is messing-up the loop due to HW loops
         #if defined(PMSIS_DRIVERS)
         hal_compiler_barrier();
         #else
@@ -591,19 +592,9 @@ int test_entry()
         return -2;
     }
 
-    if (hyper_buff[0] == 0)
-    {
-        return -3;
-    }
-
     if (ram_alloc(&hyper, &hyper_buff[1], BUFF_SIZE*2))
     {
         return -4;
-    }
-
-    if (hyper_buff[1] == 0)
-    {
-        return -5;
     }
 
 #ifdef USE_CLUSTER

@@ -27,7 +27,7 @@
 
 static inline void get_info(unsigned int *program_size)
 {
-#if defined(__PULP_OS__)
+#if defined(ARCHI_PLATFORM_RTL)
   if (rt_platform() == ARCHI_PLATFORM_RTL)
   {
     *program_size = PROGRAM_SIZE_RTL;
@@ -130,9 +130,6 @@ static int test_entry()
       flash_read(&flash, flash_addr, rx_buffer, BUFF_SIZE);
 
       pi_task_wait_on(&ram_task);
-      #if defined(PMSIS_DRIVERS)
-      pi_task_destroy(&ram_task);
-      #endif  /* PMSIS_DRIVERS */
 
       for (int i=0; i<BUFF_SIZE; i++)
       {

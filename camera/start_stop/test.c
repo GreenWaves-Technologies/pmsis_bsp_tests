@@ -17,9 +17,9 @@
 #include "pmsis/rtos/os_frontend_api/pmsis_time.h"
 #include "bsp/bsp.h"
 #include "bsp/camera.h"
-#if defined(CONFIG_GAPUINO)
+#if defined(CONFIG_HIMAX)
 #include "bsp/camera/himax.h"
-#elif defined(CONFIG_GAPOC_A)
+#elif defined(CONFIG_MT9V034)
 #include "bsp/camera/mt9v034.h"
 #endif
 
@@ -33,7 +33,7 @@
 
 static inline int get_nb_buffers()
 {
-#ifdef __PULP_OS__
+#if defined(ARCHI_PLATFORM_RTL)
   if (rt_platform() == ARCHI_PLATFORM_RTL)
     return 4;
   else
