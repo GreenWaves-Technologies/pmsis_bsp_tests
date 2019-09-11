@@ -10,6 +10,7 @@
 #include "stdio.h"
 #include <bsp/bsp.h>
 #include <bsp/ram/hyperram.h>
+#include <bsp/ram/spiram.h>
 
 #define BUFF_SIZE 2048
 
@@ -48,8 +49,13 @@ int test_entry()
       return -2;
   }
 
+#ifdef USE_HYPERRAM
   struct hyperram_conf conf;
   hyperram_conf_init(&conf);
+#else
+  struct spiram_conf conf;
+  spiram_conf_init(&conf);
+#endif
 
   pi_open_from_conf(&hyper, &conf);
 
