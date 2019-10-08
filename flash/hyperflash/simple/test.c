@@ -47,19 +47,19 @@ static PI_L2 unsigned char tx_buffer[BUFF_SIZE];
 static int test_entry()
 {
   struct pi_device flash;
-  struct hyperflash_conf flash_conf;
-  struct flash_info flash_info;
+  struct pi_hyperflash_conf flash_conf;
+  struct pi_flash_info flash_info;
 
   printf("Entering main controller\n");
 
-  hyperflash_conf_init(&flash_conf);
+  pi_hyperflash_conf_init(&flash_conf);
 
   pi_open_from_conf(&flash, &flash_conf);
 
-  if (flash_open(&flash))
+  if (pi_flash_open(&flash))
     return -1;
 
-  flash_ioctl(&flash, FLASH_IOCTL_INFO, (void *)&flash_info);
+  pi_flash_ioctl(&flash, PI_FLASH_IOCTL_INFO, (void *)&flash_info);
 
   for (int j=0; j<NB_ITER; j++)
   {
@@ -71,7 +71,7 @@ static int test_entry()
     int size;
     get_info(&size);
 
-    flash_erase(&flash, flash_addr, size);
+    pi_flash_erase(&flash, flash_addr, size);
 
     while(size > 0)
     {
@@ -81,8 +81,8 @@ static int test_entry()
         rx_buffer[i] = 0;
       }
 
-      flash_program(&flash, flash_addr, tx_buffer, BUFF_SIZE);
-      flash_read(&flash, flash_addr, rx_buffer, BUFF_SIZE);
+      pi_flash_program(&flash, flash_addr, tx_buffer, BUFF_SIZE);
+      pi_flash_read(&flash, flash_addr, rx_buffer, BUFF_SIZE);
 
       for (int i=0; i<BUFF_SIZE; i++)
       {
@@ -98,7 +98,7 @@ static int test_entry()
     }
   }
 
-  flash_close(&flash);
+  pi_flash_close(&flash);
 
   printf("TEST SUCCESS\n");
 

@@ -18,7 +18,7 @@
 
 static PI_L2 char buff[2][BUFF_SIZE];
 static int count_done = 0;
-static fs_file_t *file[2];
+static pi_fs_file_t *file[2];
 
 static void end_of_rx(void *arg)
 {
@@ -50,19 +50,19 @@ static int exec_tests()
   int errors = 0;
 
 #ifdef USE_CLUSTER
-  cl_fs_req_t req0, req1;
+  cl_pi_fs_req_t req0, req1;
 
-  cl_fs_read(file[0], buff[0], BUFF_SIZE, &req0);
-  cl_fs_read(file[1], buff[1], BUFF_SIZE, &req1);
+  cl_pi_fs_read(file[0], buff[0], BUFF_SIZE, &req0);
+  cl_pi_fs_read(file[1], buff[1], BUFF_SIZE, &req1);
 
-  errors += cl_fs_wait(&req0) != BUFF_SIZE;
-  errors += cl_fs_wait(&req1) != BUFF_SIZE;;
+  errors += cl_pi_fs_wait(&req0) != BUFF_SIZE;
+  errors += cl_pi_fs_wait(&req1) != BUFF_SIZE;;
 
 #else
   pi_task_t task0, task1;
 
-  fs_read_async(file[0], buff[0], BUFF_SIZE, pi_task_callback(&task0, end_of_rx, (void *)0));
-  fs_read_async(file[1], buff[1], BUFF_SIZE, pi_task_callback(&task1, end_of_rx, (void *)1));
+  pi_fs_read_async(file[0], buff[0], BUFF_SIZE, pi_task_callback(&task0, end_of_rx, (void *)0));
+  pi_fs_read_async(file[1], buff[1], BUFF_SIZE, pi_task_callback(&task1, end_of_rx, (void *)1));
 
   while(count_done != COUNT) {
     pi_yield();
@@ -120,15 +120,15 @@ static int test_entry()
 
   //error_conf(NULL, handle_async_error, NULL);
 
-  struct fs_conf conf;
-  fs_conf_init(&conf);
-  struct hyperflash_conf flash_conf;
+  struct pi_fs_conf conf;
+  pi_fs_conf_init(&conf);
+  struct pi_hyperflash_conf flash_conf;
 
-  hyperflash_conf_init(&flash_conf);
+  pi_hyperflash_conf_init(&flash_conf);
 
   pi_open_from_conf(&flash, &flash_conf);
 
-  if (flash_open(&flash))
+  if (pi_flash_open(&flash))
     return -1;
 
 
@@ -136,13 +136,13 @@ static int test_entry()
 
   pi_open_from_conf(&fs, &conf);
 
-  if (fs_mount(&fs))
+  if (pi_fs_mount(&fs))
     return -2;
 
-  file[0] = fs_open(&fs, "flash_file_0.bin", 0);
+  file[0] = pi_fs_open(&fs, "flash_file_0.bin", 0);
   if (file[0] == NULL) return -3;
 
-  file[1] = fs_open(&fs, "flash_file_1.bin", 0);
+  file[1] = pi_fs_open(&fs, "flash_file_1.bin", 0);
   if (file[1] == NULL) return -4;
 
 #ifdef USE_CLUSTER
@@ -170,7 +170,7 @@ static int test_entry()
     }
   }
 
-  fs_unmount(&fs);
+  pi_fs_unmount(&fs);
 
   printf("Test success\n");
 

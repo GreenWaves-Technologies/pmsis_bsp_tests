@@ -59,33 +59,33 @@ static void end_of_tx(void *arg)
 static int test_entry()
 {
   struct pi_device flash;
-  struct hyperflash_conf flash_conf;
-  struct flash_info flash_info;
-  struct hyperram_conf ram_conf;
+  struct pi_hyperflash_conf flash_conf;
+  struct pi_flash_info flash_info;
+  struct pi_hyperram_conf ram_conf;
   pi_task_t ram_task;
 
   printf("Entering main controller\n");
 
 
-  hyperflash_conf_init(&flash_conf);
+  pi_hyperflash_conf_init(&flash_conf);
 
   pi_open_from_conf(&flash, &flash_conf);
 
-  if (flash_open(&flash))
+  if (pi_flash_open(&flash))
     return -1;
 
-  flash_ioctl(&flash, FLASH_IOCTL_INFO, (void *)&flash_info);
+  pi_flash_ioctl(&flash, PI_FLASH_IOCTL_INFO, (void *)&flash_info);
 
 
 
-  hyperram_conf_init(&ram_conf);
+  pi_hyperram_conf_init(&ram_conf);
 
   pi_open_from_conf(&hyperram, &ram_conf);
 
-  if (ram_open(&hyperram))
+  if (pi_ram_open(&hyperram))
     return -2;
 
-  if (ram_alloc(&hyperram, &hyper_buff, BUFF_SIZE))
+  if (pi_ram_alloc(&hyperram, &hyper_buff, BUFF_SIZE))
     return -3;
 
 
@@ -95,8 +95,8 @@ static int test_entry()
   {
     if (j == NB_ITER - 1)
     {
-      ram_free(&hyperram, hyper_buff, BUFF_SIZE);
-      ram_close(&hyperram);
+      pi_ram_free(&hyperram, hyper_buff, BUFF_SIZE);
+      pi_ram_close(&hyperram);
     }
 
     // The beginning of the flash may contain runtime data such as the boot binary.
@@ -107,7 +107,7 @@ static int test_entry()
     unsigned int size;
     get_info(&size);
 
-    flash_erase(&flash, flash_addr, size);
+    pi_flash_erase(&flash, flash_addr, size);
 
     while(size > 0)
     {
@@ -118,16 +118,16 @@ static int test_entry()
         ram_buffer[i] = i*(j+2);
       }
 
-      flash_program(&flash, flash_addr, tx_buffer, BUFF_SIZE);
+      pi_flash_program(&flash, flash_addr, tx_buffer, BUFF_SIZE);
 
       if (j != NB_ITER - 1)
       {
         // Do hyperram read and write to see if this disturbs flash read
-        ram_write_async(&hyperram, hyper_buff, ram_buffer, BUFF_SIZE, pi_task_callback(&ram_task, end_of_tx, (void *)&hyperram));
+        pi_ram_write_async(&hyperram, hyper_buff, ram_buffer, BUFF_SIZE, pi_task_callback(&ram_task, end_of_tx, (void *)&hyperram));
       }
 
 
-      flash_read(&flash, flash_addr, rx_buffer, BUFF_SIZE);
+      pi_flash_read(&flash, flash_addr, rx_buffer, BUFF_SIZE);
 
       pi_task_wait_on(&ram_task);
 
@@ -145,7 +145,7 @@ static int test_entry()
     }
   }
 
-  flash_close(&flash);
+  pi_flash_close(&flash);
 
   printf("TEST SUCCESS\n");
 

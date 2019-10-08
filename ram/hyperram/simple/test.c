@@ -10,7 +10,7 @@
 #include "stdio.h"
 #include <bsp/bsp.h>
 #include <bsp/ram/hyperram.h>
-#include <bsp/ram/spiram.h>
+//#include <bsp/ram/spiram.h>
 
 #define BUFF_SIZE 2048
 
@@ -32,7 +32,7 @@ static void end_of_tx(void *arg)
 {
   printf("End of TX for id %d\n", (int)arg);
   int i = (int)arg;
-  ram_read_async(&hyper, hyper_buff[i], rcv_buff[i], BUFF_SIZE, pi_task_callback(&fc_tasks[i], end_of_rx, (void *)i));
+  pi_ram_read_async(&hyper, hyper_buff[i], rcv_buff[i], BUFF_SIZE, pi_task_callback(&fc_tasks[i], end_of_rx, (void *)i));
 }
 
 int test_entry()
@@ -50,8 +50,8 @@ int test_entry()
   }
 
 #ifdef USE_HYPERRAM
-  struct hyperram_conf conf;
-  hyperram_conf_init(&conf);
+  struct pi_hyperram_conf conf;
+  pi_hyperram_conf_init(&conf);
 #else
   struct spiram_conf conf;
   spiram_conf_init(&conf);
@@ -59,13 +59,13 @@ int test_entry()
 
   pi_open_from_conf(&hyper, &conf);
 
-  if (ram_open(&hyper))
+  if (pi_ram_open(&hyper))
     return -3;
 
-  if (ram_alloc(&hyper, &hyper_buff[0], BUFF_SIZE))
+  if (pi_ram_alloc(&hyper, &hyper_buff[0], BUFF_SIZE))
     return -4;
 
-  if (ram_alloc(&hyper, &hyper_buff[1], BUFF_SIZE))
+  if (pi_ram_alloc(&hyper, &hyper_buff[1], BUFF_SIZE))
     return -5;
 
   for (int i=0; i<BUFF_SIZE; i++)
@@ -75,9 +75,9 @@ int test_entry()
     }
 
   //  printf("%s %d\n", __FILE__,__LINE__);
-  ram_write_async(&hyper, hyper_buff[0], buff[0], BUFF_SIZE, pi_task_callback(&fc_tasks[0], end_of_tx, (void *)0));
+  pi_ram_write_async(&hyper, hyper_buff[0], buff[0], BUFF_SIZE, pi_task_callback(&fc_tasks[0], end_of_tx, (void *)0));
 
-  ram_write_async(&hyper, hyper_buff[1], buff[1], BUFF_SIZE, pi_task_callback(&fc_tasks[1], end_of_tx, (void *)1));
+  pi_ram_write_async(&hyper, hyper_buff[1], buff[1], BUFF_SIZE, pi_task_callback(&fc_tasks[1], end_of_tx, (void *)1));
 
   while(count != 2) {
     pi_yield();
@@ -100,9 +100,9 @@ int test_entry()
     }
   }
 
-  ram_free(&hyper, hyper_buff[0], BUFF_SIZE);
-  ram_free(&hyper, hyper_buff[1], BUFF_SIZE);
-  ram_close(&hyper);
+  pi_ram_free(&hyper, hyper_buff[0], BUFF_SIZE);
+  pi_ram_free(&hyper, hyper_buff[1], BUFF_SIZE);
+  pi_ram_close(&hyper);
 
   return 0;
 }
