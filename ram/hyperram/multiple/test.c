@@ -37,7 +37,7 @@
 
 static struct pi_task fc_tasks[NB_ASYNC_TRANSFERS];
 #ifdef USE_CLUSTER
-PI_L1 static cl_pi_ram_req_t cl_tasks[NB_ASYNC_TRANSFERS];
+PI_L1 static pi_cl_ram_req_t cl_tasks[NB_ASYNC_TRANSFERS];
 #endif
 static unsigned char buff[2][BUFF_SIZE*2];
 static uint32_t hyper_buff[2];
@@ -85,10 +85,10 @@ static int check_common_transfer(int loc2ext, int size, int l2_offset, int hyper
   if (!pi_is_fc())
   {
 #ifdef USE_CLUSTER
-    cl_pi_ram_alloc_req_t hyper_alloc_req;
+    pi_cl_ram_alloc_req_t hyper_alloc_req;
     pi_cl_alloc_req_t alloc_req;
-    cl_pi_ram_alloc(&hyper, whole_area_size, &hyper_alloc_req);
-    if (cl_pi_ram_alloc_wait(&hyper_alloc_req, &hyper_buff))
+    pi_cl_ram_alloc(&hyper, whole_area_size, &hyper_alloc_req);
+    if (pi_cl_ram_alloc_wait(&hyper_alloc_req, &hyper_buff))
       return -1;
 
     pi_cl_l2_malloc(whole_area_size, &alloc_req);
@@ -117,9 +117,9 @@ static int check_common_transfer(int loc2ext, int size, int l2_offset, int hyper
   if (!pi_is_fc())
   {
 #ifdef USE_CLUSTER
-    cl_pi_ram_req_t req;
-    cl_pi_ram_write(&hyper, hyper_buff, l2_buff, whole_area_size, &req);
-    cl_pi_ram_write_wait(&req);
+    pi_cl_ram_req_t req;
+    pi_cl_ram_write(&hyper, hyper_buff, l2_buff, whole_area_size, &req);
+    pi_cl_ram_write_wait(&req);
 #endif
   }
   else
@@ -157,16 +157,16 @@ static int check_common_transfer(int loc2ext, int size, int l2_offset, int hyper
         if (!loc2ext)
         {
           if (stride)
-            cl_pi_ram_read_2d(&hyper, hyper_buffers[i], l2_buffers[i], size, stride, length, &cl_tasks[i]);
+            pi_cl_ram_read_2d(&hyper, hyper_buffers[i], l2_buffers[i], size, stride, length, &cl_tasks[i]);
           else
-            cl_pi_ram_read(&hyper, hyper_buffers[i], l2_buffers[i], size, &cl_tasks[i]);
+            pi_cl_ram_read(&hyper, hyper_buffers[i], l2_buffers[i], size, &cl_tasks[i]);
         }
         else
         {
           if (stride)
-            cl_pi_ram_write_2d(&hyper, hyper_buffers[i], l2_buffers[i], size, stride, length, &cl_tasks[i]);
+            pi_cl_ram_write_2d(&hyper, hyper_buffers[i], l2_buffers[i], size, stride, length, &cl_tasks[i]);
           else
-            cl_pi_ram_write(&hyper, hyper_buffers[i], l2_buffers[i], size, &cl_tasks[i]);
+            pi_cl_ram_write(&hyper, hyper_buffers[i], l2_buffers[i], size, &cl_tasks[i]);
         }
       }
       else
@@ -175,30 +175,30 @@ static int check_common_transfer(int loc2ext, int size, int l2_offset, int hyper
         {
           if (stride)
           {
-            cl_pi_ram_req_t req;
-            cl_pi_ram_read_2d(&hyper, hyper_buffers[i], l2_buffers[i], size, stride, length, &req);
-            cl_pi_ram_read_wait(&req);
+            pi_cl_ram_req_t req;
+            pi_cl_ram_read_2d(&hyper, hyper_buffers[i], l2_buffers[i], size, stride, length, &req);
+            pi_cl_ram_read_wait(&req);
           }
           else
           {
-            cl_pi_ram_req_t req;
-            cl_pi_ram_read(&hyper, hyper_buffers[i], l2_buffers[i], size, &req);
-            cl_pi_ram_read_wait(&req);
+            pi_cl_ram_req_t req;
+            pi_cl_ram_read(&hyper, hyper_buffers[i], l2_buffers[i], size, &req);
+            pi_cl_ram_read_wait(&req);
           }
         }
         else
         {
           if (stride)
           {
-            cl_pi_ram_req_t req;
-            cl_pi_ram_write_2d(&hyper, hyper_buffers[i], l2_buffers[i], size, stride, length, &req);
-            cl_pi_ram_write_wait(&req);
+            pi_cl_ram_req_t req;
+            pi_cl_ram_write_2d(&hyper, hyper_buffers[i], l2_buffers[i], size, stride, length, &req);
+            pi_cl_ram_write_wait(&req);
           }
           else
           {
-            cl_pi_ram_req_t req;
-            cl_pi_ram_write(&hyper, hyper_buffers[i], l2_buffers[i], size, &req);
-            cl_pi_ram_write_wait(&req);
+            pi_cl_ram_req_t req;
+            pi_cl_ram_write(&hyper, hyper_buffers[i], l2_buffers[i], size, &req);
+            pi_cl_ram_write_wait(&req);
           }
         }
       }
@@ -274,9 +274,9 @@ static int check_common_transfer(int loc2ext, int size, int l2_offset, int hyper
         rt_compiler_barrier();
         #endif  /* PMSIS_DRIVERS */
         if (!loc2ext)
-          cl_pi_ram_read_wait(&cl_tasks[i]);
+          pi_cl_ram_read_wait(&cl_tasks[i]);
         else
-          cl_pi_ram_write_wait(&cl_tasks[i]);
+          pi_cl_ram_write_wait(&cl_tasks[i]);
         #if defined(PMSIS_DRIVERS)
         hal_compiler_barrier();
         #else
@@ -299,9 +299,9 @@ static int check_common_transfer(int loc2ext, int size, int l2_offset, int hyper
     if (!pi_is_fc())
     {
 #ifdef USE_CLUSTER
-      cl_pi_ram_req_t req;
-      cl_pi_ram_read(&hyper, hyper_buff, l2_buff, whole_area_size, &req);
-      cl_pi_ram_read_wait(&req);
+      pi_cl_ram_req_t req;
+      pi_cl_ram_read(&hyper, hyper_buff, l2_buff, whole_area_size, &req);
+      pi_cl_ram_read_wait(&req);
 #endif
     }
     else

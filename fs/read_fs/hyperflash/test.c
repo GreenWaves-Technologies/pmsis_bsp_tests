@@ -50,13 +50,13 @@ static int exec_tests()
   int errors = 0;
 
 #ifdef USE_CLUSTER
-  cl_pi_fs_req_t req0, req1;
+  pi_cl_fs_req_t req0, req1;
 
-  cl_pi_fs_read(file[0], buff[0], BUFF_SIZE, &req0);
-  cl_pi_fs_read(file[1], buff[1], BUFF_SIZE, &req1);
+  pi_cl_fs_read(file[0], buff[0], BUFF_SIZE, &req0);
+  pi_cl_fs_read(file[1], buff[1], BUFF_SIZE, &req1);
 
-  errors += cl_pi_fs_wait(&req0) != BUFF_SIZE;
-  errors += cl_pi_fs_wait(&req1) != BUFF_SIZE;;
+  errors += pi_cl_fs_wait(&req0) != BUFF_SIZE;
+  errors += pi_cl_fs_wait(&req1) != BUFF_SIZE;;
 
 #else
   pi_task_t task0, task1;
