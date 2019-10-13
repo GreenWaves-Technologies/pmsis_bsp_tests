@@ -91,7 +91,7 @@ static int exec_tests_on_cluster()
   int errors = 0;
 
   struct pi_device cluster_dev;
-  struct cluster_driver_conf conf;
+  struct pi_cluster_conf conf;
   struct pi_cluster_task cluster_task;
 
   conf.id = 0;
