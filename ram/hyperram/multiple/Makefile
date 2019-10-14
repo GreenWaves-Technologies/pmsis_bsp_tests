@@ -6,8 +6,6 @@ ifeq (,$(wildcard $(RUNNER_CONFIG)))
 RUNNER_CONFIG = $(CURDIR)/config.ini
 endif
 
-USE_PMSIS_BSP=1
-
 ifdef USE_CLUSTER
 APP_CFLAGS += -DUSE_CLUSTER
 endif

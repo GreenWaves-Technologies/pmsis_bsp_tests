@@ -15,7 +15,6 @@ endif
 APP = test
 APP_SRCS = test.c
 APP_CFLAGS += -O3 -g -DFLASH_TYPE=$(FLASH_TYPE)
-USE_PMSIS_BSP=1
 
 
 include $(RULES_DIR)/pmsis_rules.mk
