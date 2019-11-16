@@ -1,18 +1,14 @@
 -include $(RULES_DIR)/properties.mk
 
-RUNNER_CONFIG = $(CURDIR)/config-$(TARGET_NAME).ini
-
-ifeq (,$(wildcard $(RUNNER_CONFIG)))
-RUNNER_CONFIG = $(CURDIR)/config.ini
-endif
-
 
 FS_TYPE ?= read_fs
 
 USE_PMSIS_BSP=1
 
-FILE0= flash_file_0.bin
+FILE0 = flash_file_0.bin
 FILE1 = flash_file_1.bin
+TX_FILE0 = tx_flash_file_0.bin
+TX_FILE1 = tx_flash_file_1.bin
 FILES = $(FILE0) $(FILE1)
 
 PLPBRIDGE_FLAGS += -f $(FILES) -jtag
@@ -29,8 +25,13 @@ FILE1_PATH = $(FILE1)
 APP_CFLAGS += -DFS_READ_FS
 endif
 
+TX_FILE0_PATH = $(TX_FILE0)
+TX_FILE1_PATH = $(TX_FILE1)
+
 APP_CFLAGS += -DFILE0="$(FILE0_PATH)"
 APP_CFLAGS += -DFILE1="$(FILE1_PATH)"
+APP_CFLAGS += -DTX_FILE0="$(TX_FILE0_PATH)"
+APP_CFLAGS += -DTX_FILE1="$(TX_FILE1_PATH)"
 
 APP = test
 APP_SRCS = test.c

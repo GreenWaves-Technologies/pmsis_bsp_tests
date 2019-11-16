@@ -13,64 +13,60 @@
 #include "bsp/flash/hyperflash.h"
 #include "stdio.h"
 
-#define BUFF_SIZE 1024
+#define BUFF_SIZE (16*1024)
+#define ITER_SIZE 1024
 #define COUNT 2
 
-static PI_L2 char buff[2][BUFF_SIZE];
-static int count_done = 0;
+static PI_L2 char buff[2][ITER_SIZE];
 static pi_fs_file_t *file[2];
+static pi_fs_file_t *tx_file[2];
+static int done;
+static int wrote_size[2];
+static pi_task_t task[2];
+
+static PI_L2 char check_buff[BUFF_SIZE];
+
+static void end_of_rx(void *arg);
+
+static void end_of_tx(void *arg)
+{
+  int index = (int)arg;
+
+  wrote_size[index] += ITER_SIZE;
+
+  if (wrote_size[0] == BUFF_SIZE && wrote_size[1] == BUFF_SIZE)
+  {
+    done = 1;
+  }
+  else
+  {
+    if (wrote_size[index] < BUFF_SIZE)
+      pi_fs_read_async(file[index], buff[index], ITER_SIZE, pi_task_callback(&task[index], end_of_rx, (void *)index));
+  }
+}
 
 static void end_of_rx(void *arg)
 {
   int index = (int)arg;
-  printf("End of RX for id %d\n", index);
-  count_done++;
+  pi_fs_write_async(tx_file[index], buff[index], ITER_SIZE, pi_task_callback(&task[index], end_of_tx, (void *)index));
 }
-
-#if 0
-static void handle_error()
-{
-  int error = error_current();
-  printf("Caught error (error code 0x%x): %s\n", error, error_str(error));
-  exit(-1);
-}
-
-static void handle_async_error(void *arg, event_t *event, int error, void *object)
-{
-  printf("Received error (error code 0x%x, event %p, object: %p): %s\n", error, event, object, error_str(error));
-  exit(-1);
-}
-
-#endif
-
-
 
 static int exec_tests()
 {
-  int errors = 0;
-
-#ifdef USE_CLUSTER
-  pi_cl_fs_req_t req0, req1;
-
-  pi_cl_fs_read(file[0], buff[0], BUFF_SIZE, &req0);
-  pi_cl_fs_read(file[1], buff[1], BUFF_SIZE, &req1);
-
-  errors += pi_cl_fs_wait(&req0) != BUFF_SIZE;
-  errors += pi_cl_fs_wait(&req1) != BUFF_SIZE;;
-
-#else
   pi_task_t task0, task1;
 
-  pi_fs_read_async(file[0], buff[0], BUFF_SIZE, pi_task_callback(&task0, end_of_rx, (void *)0));
-  pi_fs_read_async(file[1], buff[1], BUFF_SIZE, pi_task_callback(&task1, end_of_rx, (void *)1));
+  done = 0;
+  wrote_size[0] = 0;
+  wrote_size[1] = 0;
 
-  while(count_done != COUNT) {
+  pi_fs_read_async(file[0], buff[0], ITER_SIZE, pi_task_callback(&task[0], end_of_rx, (void *)0));
+  pi_fs_read_async(file[1], buff[1], ITER_SIZE, pi_task_callback(&task[1], end_of_rx, (void *)1));
+
+  while(!done) {
     pi_yield();
   }
 
-#endif
-
-  return errors;
+  return 0;
 }
 
 
@@ -151,11 +147,17 @@ static int test_entry()
   if (pi_fs_mount(&fs))
     return -2;
 
-  file[0] = pi_fs_open(&fs, STR(FILE0), 0);
+  file[0] = pi_fs_open(&fs, STR(FILE0), PI_FS_FLAGS_READ);
   if (file[0] == NULL) return -3;
 
-  file[1] = pi_fs_open(&fs, STR(FILE1), 0);
+  file[1] = pi_fs_open(&fs, STR(FILE1), PI_FS_FLAGS_READ);
   if (file[1] == NULL) return -4;
+
+  tx_file[0] = pi_fs_open(&fs, STR(TX_FILE0), PI_FS_FLAGS_WRITE);
+  if (tx_file[0] == NULL) return -3;
+
+  tx_file[1] = pi_fs_open(&fs, STR(TX_FILE1), PI_FS_FLAGS_WRITE);
+  if (tx_file[1] == NULL) return -4;
 
 #ifdef USE_CLUSTER
   if (exec_tests_on_cluster())
@@ -167,6 +169,16 @@ static int test_entry()
 
   for (int j=0; j<2; j++)
   {
+
+    pi_fs_file_t *file;
+
+    if (j == 0)
+      file = pi_fs_open(&fs, STR(TX_FILE0), PI_FS_FLAGS_READ);
+    else
+      file = pi_fs_open(&fs, STR(TX_FILE1), PI_FS_FLAGS_READ);
+
+    pi_fs_read(file, check_buff, BUFF_SIZE);
+
     for (int i=0; i<BUFF_SIZE; i++)
     {
       unsigned char expected;
@@ -174,7 +186,7 @@ static int test_entry()
         expected = i & 0x7f;
       else
         expected = i | 0x80;
-      if (expected != buff[j][i])
+      if (expected != check_buff[i])
       {
         printf("Error, buffer: %d, index: %d, expected: 0x%x, read: 0x%x\n", j, i, expected, buff[j][i]);
         return -6;
