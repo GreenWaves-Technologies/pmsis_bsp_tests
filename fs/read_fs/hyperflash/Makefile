@@ -6,7 +6,6 @@ ifeq (,$(wildcard $(RUNNER_CONFIG)))
 RUNNER_CONFIG = $(CURDIR)/config.ini
 endif
 
-
 FS_TYPE ?= read_fs
 
 USE_PMSIS_BSP=1
