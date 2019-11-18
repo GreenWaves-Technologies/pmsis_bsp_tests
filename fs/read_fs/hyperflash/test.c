@@ -67,8 +67,8 @@ static int exec_tests()
   pi_cl_fs_read(file[0], buff[0], BUFF_SIZE, &req0);
   pi_cl_fs_read(file[1], buff[1], BUFF_SIZE, &req1);
 
-  errors += pi_cl_fs_wait(&req0) != BUFF_SIZE;
-  errors += pi_cl_fs_wait(&req1) != BUFF_SIZE;;
+  pi_cl_fs_wait(&req0);
+  pi_cl_fs_wait(&req1);
 
 #else
 
@@ -154,7 +154,6 @@ static int test_entry()
 
   if (pi_flash_open(&flash))
     return -1;
-
 
   conf.flash = &flash;
 
