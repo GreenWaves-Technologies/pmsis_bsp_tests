@@ -126,12 +126,6 @@ static int test_entry()
   struct pi_device flash;
 
 #ifdef FS_HOST
-  printf("Starting test (type: host)\n");
-#else
-  printf("Starting test (type: read_fs)\n");
-#endif
-
-#ifdef FS_HOST
   pi_pulpos_conf_init(&os_conf);
 
   os_conf.io_dev = PI_PULPOS_IO_DEV_HOST;
@@ -140,6 +134,12 @@ static int test_entry()
 
   if (pi_os_open(&os))
     return -1;
+#endif
+
+#ifdef FS_HOST
+  printf("Starting test (type: host)\n");
+#else
+  printf("Starting test (type: read_fs)\n");
 #endif
 
   //error_conf(NULL, handle_async_error, NULL);

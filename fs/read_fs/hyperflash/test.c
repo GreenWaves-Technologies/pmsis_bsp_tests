@@ -119,14 +119,8 @@ static int exec_tests_on_cluster()
 #define QUOTE(name) #name
 #define STR(macro) QUOTE(macro)
 
-
 static int test_entry()
 {
-#ifdef FS_HOST
-  printf("Starting test (type: host)\n");
-#else
-  printf("Starting test (type: read_fs)\n");
-#endif
 
 #ifdef FS_HOST
   pi_pulpos_conf_init(&os_conf);
@@ -137,6 +131,12 @@ static int test_entry()
 
   if (pi_os_open(&os))
     return -1;
+#endif
+
+#ifdef FS_HOST
+  printf("Starting test (type: host)\n");
+#else
+  printf("Starting test (type: read_fs)\n");
 #endif
 
   //error_conf(NULL, handle_async_error, NULL);
