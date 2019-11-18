@@ -19,6 +19,18 @@
 static PI_L2 char buff[2][BUFF_SIZE];
 static int count_done = 0;
 static pi_fs_file_t *file[2];
+static struct pi_device os;
+static struct pi_device fs;
+static struct pi_device flash;
+static struct pi_pulpos_conf os_conf;
+static struct pi_hyperflash_conf flash_conf;
+static struct pi_fs_conf conf;
+static struct pi_device cluster_dev;
+static struct pi_cluster_conf cluster_conf;
+static struct pi_cluster_task cluster_task;
+static pi_task_t task0, task1;
+
+
 
 static void end_of_rx(void *arg)
 {
@@ -59,7 +71,6 @@ static int exec_tests()
   errors += pi_cl_fs_wait(&req1) != BUFF_SIZE;;
 
 #else
-  pi_task_t task0, task1;
 
   pi_fs_read_async(file[0], buff[0], BUFF_SIZE, pi_task_callback(&task0, end_of_rx, (void *)0));
   pi_fs_read_async(file[1], buff[1], BUFF_SIZE, pi_task_callback(&task1, end_of_rx, (void *)1));
@@ -90,13 +101,9 @@ static int exec_tests_on_cluster()
 
   int errors = 0;
 
-  struct pi_device cluster_dev;
-  struct pi_cluster_conf conf;
-  struct pi_cluster_task cluster_task;
+  cluster_conf.id = 0;
 
-  conf.id = 0;
-
-  pi_open_from_conf(&cluster_dev, &conf);
+  pi_open_from_conf(&cluster_dev, &cluster_conf);
 
   pi_cluster_open(&cluster_dev);
 
@@ -115,26 +122,31 @@ static int exec_tests_on_cluster()
 
 static int test_entry()
 {
-
-  struct pi_device fs;
-  struct pi_device flash;
-
 #ifdef FS_HOST
   printf("Starting test (type: host)\n");
 #else
   printf("Starting test (type: read_fs)\n");
 #endif
 
+#ifdef FS_HOST
+  pi_pulpos_conf_init(&os_conf);
+
+  os_conf.io_dev = PI_PULPOS_IO_DEV_HOST;
+
+  pi_open_from_conf(&os, &os_conf);
+
+  if (pi_os_open(&os))
+    return -1;
+#endif
+
   //error_conf(NULL, handle_async_error, NULL);
 
-  struct pi_fs_conf conf;
   pi_fs_conf_init(&conf);
 
 #ifdef FS_HOST
   conf.type = PI_FS_HOST;
 #endif
 
-  struct pi_hyperflash_conf flash_conf;
 
   pi_hyperflash_conf_init(&flash_conf);
 

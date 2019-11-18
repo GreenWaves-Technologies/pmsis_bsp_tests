@@ -18,6 +18,7 @@ ifeq '$(FS_TYPE)' 'host'
 FILE0_PATH = $(CURDIR)/$(FILE0)
 FILE1_PATH = $(CURDIR)/$(FILE1)
 APP_CFLAGS += -DFS_HOST
+export GAP_USE_OPENOCD=1
 else
 PLPBRIDGE_FLAGS += -f $(FILES) -jtag
 override runner_args += $(foreach file,$(FILES), --config-opt=flash/fs/files=$(CURDIR)/$(file))

@@ -20,6 +20,8 @@
 #define STRIDE 32
 #define LENGTH 16
 
+static struct pi_device os;
+static struct pi_pulpos_conf os_conf;
 static PI_L2 char buff[2][BUFF_SIZE];
 static int count_done = 0;
 static pi_fs_file_t *file[2];
@@ -127,6 +129,17 @@ static int test_entry()
   printf("Starting test (type: host)\n");
 #else
   printf("Starting test (type: read_fs)\n");
+#endif
+
+#ifdef FS_HOST
+  pi_pulpos_conf_init(&os_conf);
+
+  os_conf.io_dev = PI_PULPOS_IO_DEV_HOST;
+
+  pi_open_from_conf(&os, &os_conf);
+
+  if (pi_os_open(&os))
+    return -1;
 #endif
 
   //error_conf(NULL, handle_async_error, NULL);
