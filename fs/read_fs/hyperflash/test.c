@@ -22,7 +22,6 @@ static pi_fs_file_t *file[2];
 static struct pi_device os;
 static struct pi_device fs;
 static struct pi_device flash;
-static struct pi_pulpos_conf os_conf;
 static struct pi_hyperflash_conf flash_conf;
 static struct pi_fs_conf conf;
 static struct pi_device cluster_dev;
@@ -30,6 +29,9 @@ static struct pi_cluster_conf cluster_conf;
 static struct pi_cluster_task cluster_task;
 static pi_task_t task0, task1;
 
+#ifdef __PULP_OS__
+static struct pi_pulpos_conf os_conf;
+#endif
 
 
 static void end_of_rx(void *arg)
@@ -122,7 +124,7 @@ static int exec_tests_on_cluster()
 static int test_entry()
 {
 
-#ifdef FS_HOST
+#if defined(FS_HOST) && defined(__PULP_OS__)
   pi_pulpos_conf_init(&os_conf);
 
   os_conf.io_dev = PI_PULPOS_IO_DEV_HOST;

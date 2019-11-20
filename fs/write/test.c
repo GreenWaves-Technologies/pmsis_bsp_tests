@@ -18,13 +18,16 @@
 #define COUNT 2
 
 static struct pi_device os;
-static struct pi_pulpos_conf os_conf;
 static PI_L2 char buff[2][ITER_SIZE];
 static pi_fs_file_t *file[2];
 static pi_fs_file_t *tx_file[2];
 static int done;
 static int wrote_size[2];
 static pi_task_t task[2];
+
+#ifdef __PULP_OS__
+static struct pi_pulpos_conf os_conf;
+#endif
 
 static PI_L2 char check_buff[BUFF_SIZE];
 
@@ -117,7 +120,7 @@ static int test_entry()
   struct pi_device fs;
   struct pi_device flash;
 
-#ifdef FS_HOST
+#if defined(FS_HOST) && defined(__PULP_OS__)
   pi_pulpos_conf_init(&os_conf);
 
   os_conf.io_dev = PI_PULPOS_IO_DEV_HOST;

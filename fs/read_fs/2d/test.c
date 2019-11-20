@@ -21,10 +21,13 @@
 #define LENGTH 16
 
 static struct pi_device os;
-static struct pi_pulpos_conf os_conf;
 static PI_L2 char buff[2][BUFF_SIZE];
 static int count_done = 0;
 static pi_fs_file_t *file[2];
+
+#ifdef __PULP_OS__
+static struct pi_pulpos_conf os_conf;
+#endif
 
 static void end_of_rx(void *arg)
 {
@@ -125,7 +128,7 @@ static int test_entry()
   struct pi_device fs;
   struct pi_device flash;
 
-#ifdef FS_HOST
+#if defined(FS_HOST) && defined(__PULP_OS__)
   pi_pulpos_conf_init(&os_conf);
 
   os_conf.io_dev = PI_PULPOS_IO_DEV_HOST;
