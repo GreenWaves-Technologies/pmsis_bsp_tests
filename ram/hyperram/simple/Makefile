@@ -16,7 +16,9 @@ ifeq '$(RAM_TYPE)' 'HYPERRAM'
 APP_CFLAGS += -DUSE_HYPERRAM
 else
 APP_CFLAGS += -DUSE_SPIRAM
+CONFIG_SPIRAM = 1
 endif
+
 
 
 include $(RULES_DIR)/pmsis_rules.mk
