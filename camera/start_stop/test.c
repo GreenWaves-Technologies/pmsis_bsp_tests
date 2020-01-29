@@ -10,11 +10,6 @@
 
 #include "stdio.h"
 #include "pmsis.h"
-#include "pmsis/device.h"
-#include "pmsis/rtos/pmsis_os.h"
-#include "pmsis/rtos/malloc/pmsis_l2_malloc.h"
-#include "pmsis/rtos/os_frontend_api/pmsis_task.h"
-#include "pmsis/rtos/os_frontend_api/pmsis_time.h"
 #include "bsp/bsp.h"
 #include "bsp/camera.h"
 #if defined(CONFIG_HIMAX)
