@@ -1,10 +1,6 @@
 -include $(RULES_DIR)/properties.mk
 
-RUNNER_CONFIG = $(CURDIR)/config-$(TARGET_NAME).ini
-
-ifeq (,$(wildcard $(RUNNER_CONFIG)))
-RUNNER_CONFIG = $(CURDIR)/config.ini
-endif
+override runner_args += --config-opt=runner/peripherals=true
 
 RAM_TYPE ?= HYPERRAM
 

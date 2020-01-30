@@ -10,7 +10,10 @@
 #include "stdio.h"
 #include <bsp/bsp.h>
 #include <bsp/ram/hyperram.h>
+
+#ifdef USE_SPIRAM
 #include <bsp/ram/spiram.h>
+#endif
 
 #define BUFF_SIZE 2048
 
