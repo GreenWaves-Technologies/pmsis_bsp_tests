@@ -13,6 +13,11 @@
 #include <bsp/bsp.h>
 #include <bsp/ram/hyperram.h>
 
+#ifdef USE_SPIRAM
+#include <bsp/ram/spiram.h>
+#endif
+
+
 #if !defined(TEST_QUICK) && !defined(TEST_BASIC) && !defined(TEST_ROBUST)
 #define TEST_QUICK 1
 #endif
@@ -31,6 +36,22 @@
 #define LOC2EXT 1
 #endif
 
+
+#ifdef USE_SPIRAM
+#define BURST_SIZE 256
+#define BUFF_SIZE0 (BURST_SIZE*2)                     // 2 bursts
+#define BUFF_SIZE1 (BURST_SIZE*3)                     // 3 bursts
+#define BUFF_SIZE2 (BURST_SIZE*4)                     // 4 bursts
+#define BUFF_SIZE3 (BURST_SIZE + BURST_SIZE/2)        // 1.5 bursts
+#define BUFF_SIZE4 (BURST_SIZE*2 + BURST_SIZE/2)      // 2.5 bursts
+#define BUFF_SIZE5 (BURST_SIZE*3 + BURST_SIZE/2)      // 3.5 bursts
+#define BUFF_SIZE6 (BURST_SIZE + 3)                   // 1 burst and 3 bytes
+#define BUFF_SIZE7 (BURST_SIZE*2 + 3)                 // 2 burst and 3 bytes
+#define BUFF_SIZE8 (BURST_SIZE*3 + 3)                 // 3 burst and 3 bytes
+#define BUFF_SIZE9 (BURST_SIZE + BURST_SIZE/2 + 3)    // 1.5 bursts abd 3 bytes
+#define BUFF_SIZE10 (BURST_SIZE*2 + BURST_SIZE/2 + 3) // 2.5 bursts abd 3 bytes
+#define BUFF_SIZE11 (BURST_SIZE*3 + BURST_SIZE/2 + 3) // 3.5 bursts abd 3 bytes
+#endif
 
 #define BUFF_SIZE 1024
 #define NB_ASYNC_TRANSFERS 4
@@ -70,7 +91,7 @@ static int check_common_transfer(int loc2ext, int size, int l2_offset, int hyper
 
   //rt_perf_t perf;
   int errors = 0;
-  int whole_area_size = transfer_size*2*nb_transfers;
+  int whole_area_size = (transfer_size+8)*2*nb_transfers;
 
   unsigned char *l2_buffers[nb_transfers];
   uint32_t hyper_buffers[nb_transfers];
@@ -137,8 +158,9 @@ static int check_common_transfer(int loc2ext, int size, int l2_offset, int hyper
   for (int i=0; i<nb_transfers; i++)
   {
     // The transfer l2 and hyper buffer is taken in the middle so that we can check overflows
-    l2_buffers[i] = &l2_buff[transfer_size*2*i + transfer_size/2 + l2_offset];
-    hyper_buffers[i] = hyper_buff + transfer_size*2*i + transfer_size/2 + hyper_offset;
+    int aligned_transfer_size = (transfer_size + 7) & ~0x7;
+    l2_buffers[i] = &l2_buff[aligned_transfer_size*2*i + aligned_transfer_size/2 + l2_offset];
+    hyper_buffers[i] = hyper_buff + aligned_transfer_size*2*i + aligned_transfer_size/2 + hyper_offset;
   }
 
 
@@ -319,36 +341,39 @@ static int check_common_transfer(int loc2ext, int size, int l2_offset, int hyper
   {
     for (int i=0; i<nb_transfers; i++)
     {
-      unsigned char *l2_buffer = &l2_buff[transfer_size*2*i];
+      int aligned_transfer_size = (transfer_size + 7) & ~0x7;
+      unsigned char *l2_buffer = &l2_buff[aligned_transfer_size*2*i];
       for (int j=0; j<transfer_size*2; j++)
       {
         unsigned char expected;
-        if (j < hyper_offset + transfer_size/2 || j >= hyper_offset + transfer_size + transfer_size/2)
+        if (j < hyper_offset + aligned_transfer_size/2 || j >= hyper_offset + transfer_size + aligned_transfer_size/2)
         {
-          expected = ((j & 0x7f) + i * transfer_size * 2) | 0x80;
+          expected = ((j & 0x7f) + i * aligned_transfer_size * 2) | 0x80;
         }
         else
         {
           if (stride)
           {
-            int hyper_index = j - hyper_offset - transfer_size/2;
+            int hyper_index = j - hyper_offset - aligned_transfer_size/2;
             int line_index = hyper_index / stride;
             int line_offset = hyper_index % stride;
 
             if (line_offset >= length || line_offset + line_index*length >= size)
-              expected = ((j & 0x7f) + i * transfer_size * 2) | 0x80;
+            {
+              expected = ((j & 0x7f) + i * aligned_transfer_size * 2) | 0x80;
+            }
             else
-              expected = (line_index * length + line_offset + transfer_size / 2 + l2_offset + i * transfer_size * 2) & 0x7f;
+              expected = (line_index * length + line_offset + aligned_transfer_size / 2 + l2_offset + i * aligned_transfer_size * 2) & 0x7f;
           }
           else
           {
-            expected = (j + l2_offset - hyper_offset + i * transfer_size * 2) & 0x7f;
+            expected = (j + l2_offset - hyper_offset + i * aligned_transfer_size * 2) & 0x7f;
           }
         }
 
         if (expected != l2_buffer[j])
         {
-          printf("Error at index %d: expected: %2.2x, got: %2.2x\n", transfer_size*2*i + j, expected, l2_buffer[j]);
+          printf("Error at index %d addr %p: expected: %2.2x, got: %2.2x\n", aligned_transfer_size*2*i + j, &l2_buffer[j], expected, l2_buffer[j]);
           errors++;
         }
       }
@@ -358,33 +383,34 @@ static int check_common_transfer(int loc2ext, int size, int l2_offset, int hyper
   {
     for (int i=0; i<nb_transfers; i++)
     {
-      unsigned char *l2_buffer = &l2_buff[transfer_size*2*i];
+      int aligned_transfer_size = (transfer_size + 7) & ~0x7;
+      unsigned char *l2_buffer = &l2_buff[aligned_transfer_size*2*i];
       for (int j=0; j<transfer_size*2; j++)
       {
         unsigned char expected;
 
-        if (j < l2_offset + transfer_size/2 || j >= l2_offset + size + transfer_size/2)
+        if (j < l2_offset + aligned_transfer_size/2 || j >= l2_offset + size + aligned_transfer_size/2)
         {
-          expected = (j + i * transfer_size * 2) & 0x7f;
+          expected = (j + i * aligned_transfer_size * 2) & 0x7f;
         }
         else
         {
           if (stride)
           {
-            int l2_index = j - l2_offset - transfer_size/2;
+            int l2_index = j - l2_offset - aligned_transfer_size/2;
             int line_index = l2_index / length;
             int hyper_index = line_index*stride + l2_index % length;
-            expected = (hyper_index + transfer_size / 2 + hyper_offset + i * transfer_size * 2) | 0x80;
+            expected = (hyper_index + aligned_transfer_size / 2 + hyper_offset + i * aligned_transfer_size * 2) | 0x80;
           }
           else
           {
-            expected = (j - l2_offset + hyper_offset + i * transfer_size * 2) | 0x80;
+            expected = (j - l2_offset + hyper_offset + i * aligned_transfer_size * 2) | 0x80;
           }
         }
 
         if (expected != l2_buffer[j])
         {
-          printf("Error at index %d: expected: %2.2x, got: %2.2x\n", transfer_size*2*i + j, expected, l2_buffer[j]);
+          printf("    Error at index %d addr %p: expected: %2.2x, got: %2.2x\n", aligned_transfer_size*2*i + j, &l2_buffer[j], expected, l2_buffer[j]);
           errors++;
         }
       }
@@ -475,6 +501,34 @@ static int exec_tests()
 #if defined(TEST_QUICK)
 
 #ifdef TEST_SYNC
+
+#ifdef USE_SPIRAM
+  if (check_transfer(LOC2EXT, BUFF_SIZE0, 0, 0, 0, 0, 0)) return -1;
+  if (check_transfer(LOC2EXT, BUFF_SIZE1, 0, 0, 0, 0, 0)) return -1;
+  if (check_transfer(LOC2EXT, BUFF_SIZE2, 0, 0, 0, 0, 0)) return -1;
+  if (check_transfer(LOC2EXT, BUFF_SIZE3, 0, 0, 0, 0, 0)) return -1;
+  if (check_transfer(LOC2EXT, BUFF_SIZE4, 0, 0, 0, 0, 0)) return -1;
+  if (check_transfer(LOC2EXT, BUFF_SIZE5, 0, 0, 0, 0, 0)) return -1;
+  if (check_transfer(LOC2EXT, BUFF_SIZE6, 0, 0, 0, 0, 0)) return -1;
+  if (check_transfer(LOC2EXT, BUFF_SIZE7, 0, 0, 0, 0, 0)) return -1;
+  if (check_transfer(LOC2EXT, BUFF_SIZE8, 0, 0, 0, 0, 0)) return -1;
+  if (check_transfer(LOC2EXT, BUFF_SIZE9, 0, 0, 0, 0, 0)) return -1;
+  if (check_transfer(LOC2EXT, BUFF_SIZE10, 0, 0, 0, 0, 0)) return -1;
+  if (check_transfer(LOC2EXT, BUFF_SIZE11, 0, 0, 0, 0, 0)) return -1;
+
+  if (check_transfer(LOC2EXT, BUFF_SIZE0, 1, 0, 0, 0, 0)) return -1;
+  if (check_transfer(LOC2EXT, BUFF_SIZE1, 1, 0, 0, 0, 0)) return -1;
+  if (check_transfer(LOC2EXT, BUFF_SIZE2, 1, 0, 0, 0, 0)) return -1;
+  if (check_transfer(LOC2EXT, BUFF_SIZE3, 1, 0, 0, 0, 0)) return -1;
+  if (check_transfer(LOC2EXT, BUFF_SIZE4, 1, 0, 0, 0, 0)) return -1;
+  if (check_transfer(LOC2EXT, BUFF_SIZE5, 1, 0, 0, 0, 0)) return -1;
+  if (check_transfer(LOC2EXT, BUFF_SIZE6, 1, 0, 0, 0, 0)) return -1;
+  if (check_transfer(LOC2EXT, BUFF_SIZE7, 1, 0, 0, 0, 0)) return -1;
+  if (check_transfer(LOC2EXT, BUFF_SIZE8, 1, 0, 0, 0, 0)) return -1;
+  if (check_transfer(LOC2EXT, BUFF_SIZE9, 1, 0, 0, 0, 0)) return -1;
+  if (check_transfer(LOC2EXT, BUFF_SIZE10, 1, 0, 0, 0, 0)) return -1;
+  if (check_transfer(LOC2EXT, BUFF_SIZE11, 1, 0, 0, 0, 0)) return -1;
+#endif
   if (check_transfers_for_size(BUFF_SIZE, 0)) return -1;
 #endif
 
@@ -576,8 +630,13 @@ int test_entry()
 {
     printf("Entering main controller\n");
 
+#ifdef USE_HYPERRAM
     struct pi_hyperram_conf conf;
     pi_hyperram_conf_init(&conf);
+#else
+    struct pi_spiram_conf conf;
+    pi_spiram_conf_init(&conf);
+#endif
 
     pi_open_from_conf(&hyper, &conf);
 
