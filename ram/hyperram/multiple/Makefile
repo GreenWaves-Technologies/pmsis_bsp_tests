@@ -4,6 +4,14 @@ override runner_args += --config-opt=runner/peripherals=true
 
 RAM_TYPE ?= HYPERRAM
 
+ifeq '$(RAM_TYPE)' 'HYPERRAM'
+RUNNER_CONFIG = $(CURDIR)/config-hyper.ini
+endif
+
+ifeq '$(RAM_TYPE)' 'SPIRAM'
+RUNNER_CONFIG = $(CURDIR)/config-spi.ini
+endif
+
 ifdef USE_CLUSTER
 APP_CFLAGS += -DUSE_CLUSTER
 endif
