@@ -11,8 +11,14 @@
 #include "pmsis.h"
 #include "stdio.h"
 #include <bsp/bsp.h>
+
+#ifdef USE_HYPERFLASH
 #include <bsp/flash/hyperflash.h>
 #include <bsp/ram/hyperram.h>
+#else
+#include <bsp/flash/spiflash.h>
+#include <bsp/ram/spiram.h>
+#endif
 
 #define HYPER_FLASH 0
 #define SPI_FLASH   1
@@ -59,15 +65,26 @@ static void end_of_tx(void *arg)
 static int test_entry()
 {
   struct pi_device flash;
+#ifdef USE_HYPERFLASH
   struct pi_hyperflash_conf flash_conf;
-  struct pi_flash_info flash_info;
   struct pi_hyperram_conf ram_conf;
+#else
+  struct pi_spiflash_conf flash_conf;
+  struct pi_spiram_conf ram_conf;
+#endif
+  struct pi_flash_info flash_info;
   pi_task_t ram_task;
 
   printf("Entering main controller\n");
 
 
+#ifdef USE_HYPERFLASH
   pi_hyperflash_conf_init(&flash_conf);
+  pi_hyperram_conf_init(&ram_conf);
+#else
+  pi_spiflash_conf_init(&flash_conf);
+  pi_spiram_conf_init(&ram_conf);
+#endif
 
   pi_open_from_conf(&flash, &flash_conf);
 
@@ -77,8 +94,6 @@ static int test_entry()
   pi_flash_ioctl(&flash, PI_FLASH_IOCTL_INFO, (void *)&flash_info);
 
 
-
-  pi_hyperram_conf_init(&ram_conf);
 
   pi_open_from_conf(&hyperram, &ram_conf);
 

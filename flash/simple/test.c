@@ -11,7 +11,12 @@
 #include "pmsis.h"
 #include "stdio.h"
 #include <bsp/bsp.h>
+
+#ifdef USE_HYPERFLASH
 #include <bsp/flash/hyperflash.h>
+#else
+#include <bsp/flash/spiflash.h>
+#endif
 
 #define HYPER_FLASH 0
 #define SPI_FLASH   1
@@ -47,12 +52,20 @@ static PI_L2 unsigned char tx_buffer[BUFF_SIZE];
 static int test_entry()
 {
   struct pi_device flash;
+#ifdef USE_HYPERFLASH
   struct pi_hyperflash_conf flash_conf;
+#else
+  struct pi_spiflash_conf flash_conf;
+#endif
   struct pi_flash_info flash_info;
 
   printf("Entering main controller\n");
 
+#ifdef USE_HYPERFLASH
   pi_hyperflash_conf_init(&flash_conf);
+#else
+  pi_spiflash_conf_init(&flash_conf);
+#endif
 
   pi_open_from_conf(&flash, &flash_conf);
 
