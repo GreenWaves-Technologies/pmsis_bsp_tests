@@ -14,6 +14,12 @@ FILE0= flash_file_0.bin
 FILE1 = flash_file_1.bin
 FILES = $(FILE0) $(FILE1)
 
+ifeq '$(FS_TYPE)' 'lfs'
+PLPBRIDGE_FLAGS += -f $(FILES) -jtag
+FILE0_PATH = $(FILE0)
+FILE1_PATH = $(FILE1)
+APP_CFLAGS += -DFS_LFS
+else
 ifeq '$(FS_TYPE)' 'host'
 FILE0_PATH = $(CURDIR)/$(FILE0)
 FILE1_PATH = $(CURDIR)/$(FILE1)
@@ -26,6 +32,7 @@ override runner_args += $(foreach file,$(FILES), --config-opt=flash/fs/files=$(C
 FILE0_PATH = $(FILE0)
 FILE1_PATH = $(FILE1)
 APP_CFLAGS += -DFS_READ_FS
+endif
 endif
 
 APP_CFLAGS += -DFILE0="$(FILE0_PATH)"
