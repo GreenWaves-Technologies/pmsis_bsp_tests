@@ -13,6 +13,20 @@
 #include "bsp/flash/hyperflash.h"
 #include "stdio.h"
 
+#if defined(FS_HOST)
+#include <bsp/fs/hostfs.h>
+
+#elif defined(FS_READ_FS)
+#include <bsp/fs/readfs.h>
+
+#elif defined(FS_LFS)
+#include <bsp/fs/pi_lfs.h>
+
+#else
+#error "Unknown FS"
+#endif
+
+
 #define BUFF_SIZE 1024
 #define COUNT 2
 
@@ -23,15 +37,10 @@ static struct pi_device os;
 static struct pi_device fs;
 static struct pi_device flash;
 static struct pi_hyperflash_conf flash_conf;
-static struct pi_fs_conf conf;
 static struct pi_device cluster_dev;
 static struct pi_cluster_conf cluster_conf;
 static struct pi_cluster_task cluster_task;
 static pi_task_t task0, task1;
-
-#ifdef __PULP_OS__
-static struct pi_pulpos_conf os_conf;
-#endif
 
 
 static void end_of_rx(void *arg)
@@ -124,29 +133,32 @@ static int exec_tests_on_cluster()
 static int test_entry()
 {
 
-#if defined(FS_HOST) && defined(__PULP_OS__)
-  pi_pulpos_conf_init(&os_conf);
-
-  os_conf.io_dev = PI_PULPOS_IO_DEV_HOST;
-
-  pi_open_from_conf(&os, &os_conf);
-
-  if (pi_os_open(&os))
-    return -1;
-#endif
-
-#ifdef FS_HOST
+#if defined(FS_HOST)
   printf("Starting test (type: host)\n");
-#else
+#elif defined(FS_READ_FS)
   printf("Starting test (type: read_fs)\n");
+#elif defined(FS_LFS)
+  printf("Starting test (type: lfs)\n");
 #endif
+
 
   //error_conf(NULL, handle_async_error, NULL);
 
-  pi_fs_conf_init(&conf);
+#if defined(FS_HOST)
 
-#ifdef FS_HOST
-  conf.type = PI_FS_HOST;
+  struct pi_hostfs_conf conf;
+  pi_hostfs_conf_init(&conf);
+
+#elif defined(FS_READ_FS)
+
+  struct pi_readfs_conf conf;
+  pi_readfs_conf_init(&conf);
+
+#elif defined(FS_LFS)
+
+  struct pi_lfs_conf conf;
+  pi_lfs_conf_init(&conf);
+
 #endif
 
 
@@ -157,7 +169,7 @@ static int test_entry()
   if (pi_flash_open(&flash))
     return -1;
 
-  conf.flash = &flash;
+  conf.fs.flash = &flash;
 
   pi_open_from_conf(&fs, &conf);
 
