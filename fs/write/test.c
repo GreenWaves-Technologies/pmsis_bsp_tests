@@ -192,6 +192,10 @@ static int test_entry()
     return -5;
 #endif
 
+  // Close file to wrote data on flash.
+  pi_fs_close(tx_file[0]);
+  pi_fs_close(tx_file[1]);
+  
   for (int j=0; j<2; j++)
   {
 
