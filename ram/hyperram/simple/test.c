@@ -77,7 +77,6 @@ int test_entry()
       buff[1][i] = i | 0x80;
     }
 
-  //  printf("%s %d\n", __FILE__,__LINE__);
   pi_ram_write_async(&hyper, hyper_buff[0], buff[0], BUFF_SIZE, pi_task_callback(&fc_tasks[0], end_of_tx, (void *)0));
 
   pi_ram_write_async(&hyper, hyper_buff[1], buff[1], BUFF_SIZE, pi_task_callback(&fc_tasks[1], end_of_tx, (void *)1));
