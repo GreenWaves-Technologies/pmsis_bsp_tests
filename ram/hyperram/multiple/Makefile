@@ -1,15 +1,13 @@
--include $(RULES_DIR)/properties.mk
-
-override runner_args += --config-opt=runner/peripherals=true
-
 RAM_TYPE ?= HYPERRAM
 
 ifeq '$(RAM_TYPE)' 'HYPERRAM'
-RUNNER_CONFIG = $(CURDIR)/config-hyper.ini
+config_args = --ini-config=$(CURDIR)/config-hyper.ini
+CONFIG_HYPERRAM = 1
 endif
 
 ifeq '$(RAM_TYPE)' 'SPIRAM'
-RUNNER_CONFIG = $(CURDIR)/config-spi.ini
+config_args = --ini-config=$(CURDIR)/config-spi.ini
+CONFIG_SPIRAM = 1
 endif
 
 ifdef USE_CLUSTER
