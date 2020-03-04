@@ -56,11 +56,6 @@ static struct pi_device hyperram;
 
 
 
-static void end_of_tx(void *arg)
-{
-}
-
-
 
 static int test_entry()
 {
@@ -138,7 +133,7 @@ static int test_entry()
       if (j != NB_ITER - 1)
       {
         // Do hyperram read and write to see if this disturbs flash read
-        pi_ram_write_async(&hyperram, hyper_buff, ram_buffer, BUFF_SIZE, pi_task_callback(&ram_task, end_of_tx, (void *)&hyperram));
+        pi_ram_write_async(&hyperram, hyper_buff, ram_buffer, BUFF_SIZE, pi_task_block(&ram_task));
       }
 
 
