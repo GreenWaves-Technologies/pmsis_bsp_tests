@@ -11,9 +11,9 @@ FS_TYPE ?= read_fs
 USE_PMSIS_BSP=1
 
 FILE0_NAME = flash_file_0.bin
-FILE0 = files/$(FILE0_NAME)
+FILE0 = $(CURDIR)/files/$(FILE0_NAME)
 FILE1_NAME = flash_file_1.bin
-FILE1 = files/$(FILE1_NAME)
+FILE1 = $(CURDIR)/files/$(FILE1_NAME)
 FILES = $(FILE0) $(FILE1)
 
 ifeq '$(FS_TYPE)' 'lfs'
@@ -22,13 +22,13 @@ PLPBRIDGE_FLAGS += -f -jtag
 FILE0_PATH = $(FILE0_NAME)
 FILE1_PATH = $(FILE1_NAME)
 APP_CFLAGS += -DFS_LFS
+CONFIG_LFS = 1
 else
 ifeq '$(FS_TYPE)' 'host'
-FILE0_PATH = $(CURDIR)/$(FILE0)
-FILE1_PATH = $(CURDIR)/$(FILE1)
+FILE0_PATH = $(FILE0)
+FILE1_PATH = $(FILE1)
 APP_CFLAGS += -DFS_HOST
 export GAP_USE_OPENOCD=1
-override runner_args += --config-opt=runner/bridge=openocd
 else
 READFS_FILES = $(FILES)
 PLPBRIDGE_FLAGS += -f -jtag
