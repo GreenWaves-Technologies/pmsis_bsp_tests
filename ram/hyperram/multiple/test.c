@@ -290,20 +290,12 @@ static int check_common_transfer(int loc2ext, int size, int l2_offset, int hyper
       for (int i=0; i<nb_transfers; i++)
       {
         // TODO this is a temporary workaround for a compiler bug which is messing-up the loop due to HW loops
-        #if defined(PMSIS_DRIVERS)
         hal_compiler_barrier();
-        #else
-        rt_compiler_barrier();
-        #endif  /* PMSIS_DRIVERS */
         if (!loc2ext)
           pi_cl_ram_read_wait(&cl_tasks[i]);
         else
           pi_cl_ram_write_wait(&cl_tasks[i]);
-        #if defined(PMSIS_DRIVERS)
         hal_compiler_barrier();
-        #else
-        rt_compiler_barrier();
-        #endif  /* PMSIS_DRIVERS */
       }
 #endif
     }
