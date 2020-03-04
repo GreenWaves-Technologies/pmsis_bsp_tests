@@ -23,7 +23,6 @@ FILE0_PATH = $(FILE0)
 FILE1_PATH = $(FILE1)
 APP_CFLAGS += -DFS_HOST
 export GAP_USE_OPENOCD=1
-override runner_args += --config-opt=runner/bridge=openocd
 else
 READFS_FILES = $(FILES)
 PLPBRIDGE_FLAGS += -f -jtag
