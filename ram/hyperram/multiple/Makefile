@@ -61,5 +61,8 @@ APP_CFLAGS += -DUSE_SPIRAM
 CONFIG_SPIRAM = 1
 endif
 
+ifdef VERBOSE
+APP_CFLAGS += -DVERBOSE
+endif
 
 include $(RULES_DIR)/pmsis_rules.mk

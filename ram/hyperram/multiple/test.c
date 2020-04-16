@@ -80,7 +80,9 @@ static int check_common_transfer(int loc2ext, int size, int l2_offset, int hyper
   if (pi_is_fc())
 #endif
   {
+#ifdef VERBOSE
     printf("Checking %stransfer (loc2ext: %d, size: 0x%x, l2_offset: 0x%x, hyper_offset: 0x%x, stride: 0x%x, length: 0x%x)\n", async?"async " : "", loc2ext, size, l2_offset, hyper_offset, stride, length);
+#endif
   }
 
   int transfer_size = size;
@@ -620,6 +622,7 @@ static int exec_tests_on_cluster()
 
 int test_entry()
 {
+    int err;
     printf("Entering main controller\n");
 
 #ifdef USE_HYPERRAM
@@ -649,10 +652,16 @@ int test_entry()
     }
 
 #ifdef USE_CLUSTER
-    return exec_tests_on_cluster();
+    err = exec_tests_on_cluster();
 #else
-    return exec_tests();
+    err = exec_tests();
 #endif
+
+    if (err == 0)
+      printf("Test success\n");
+    else
+      printf("Test failure\n");
+    return err;
 }
 
 void test_kickoff(void *arg)
