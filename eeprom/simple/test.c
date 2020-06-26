@@ -1,4 +1,4 @@
-/* 
+/*
  * Copyright (C) 2017 ETH Zurich, University of Bologna and GreenWaves Technologies
  * All rights reserved.
  *
@@ -19,7 +19,7 @@ static int test_entry()
 {
   struct pi_24xx1025_conf conf;
   static struct pi_device eeprom;
-  
+
   pi_24xx1025_conf_init(&conf);
 
   pi_open_from_conf(&eeprom, &conf);
@@ -38,12 +38,14 @@ static int test_entry()
 
   for (int i=0; i<BUFF_SIZE; i++)
   {
-    if (buffer[1][i] != i & 0xff)
+    if (buffer[1][i] != (i & 0xff))
     {
       printf("Got error at index %d, expected %2.2x got %2.2x\n", i, i & 0xff, buffer[1][i]);
       return -1;
     }
   }
+
+  pi_eeprom_close(&eeprom);
 
   printf("Test success\n");
 
